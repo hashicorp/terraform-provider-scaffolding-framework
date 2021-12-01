@@ -12,6 +12,13 @@ import (
 // provider satisfies the tfsdk.Provider interface and usually is included
 // with all Resource and DataSource implementations.
 type provider struct {
+	// client can contain the upstream provider SDK or HTTP client used to
+	// communicate with the upstream service. Resource and DataSource
+	// implementations can then make calls using this client.
+	//
+	// TODO: If appropriate, implement upstream provider SDK or HTTP client.
+	// client vendorsdk.ExampleClient
+
 	// configured is set to true at the end of the Configure method.
 	// This can be used in Resource and DataSource implementations to verify
 	// that the provider was previously configured.
@@ -21,16 +28,25 @@ type provider struct {
 	// provider is built and ran locally, and "test" when running acceptance
 	// testing.
 	version string
+}
 
-	// client can contain the upstream provider SDK or HTTP client used to
-	// communicate with the upstream service. Resource and DataSource
-	// implementations can then make calls using this client.
-	//
-	// TODO: If appropriate, implement upstream provider SDK or HTTP client.
-	// client vendorsdk.ExampleClient
+// providerData can be used to store data from the Terraform configuration.
+type providerData struct {
+	Example types.String `tfsdk:"example"`
 }
 
 func (p *provider) Configure(ctx context.Context, req tfsdk.ConfigureProviderRequest, resp *tfsdk.ConfigureProviderResponse) {
+	var data providerData
+	diags := req.Config.Get(ctx, &data)
+	resp.Diagnostics.Append(diags...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Configuration values are now available.
+	// if data.Example.Null { /* ... */ }
+
 	// If the upstream provider SDK or HTTP client requires configuration, such
 	// as authentication or logging, this is a great opportunity to do so.
 
