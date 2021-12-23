@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 type exampleResourceType struct{}
@@ -72,6 +73,11 @@ func (r exampleResource) Create(ctx context.Context, req tfsdk.CreateResourceReq
 	// For the purposes of this example code, hardcoding a response value to
 	// save into the Terraform state.
 	data.Id = types.String{Value: "example-id"}
+
+	// write logs using the tflog package
+	// see https://pkg.go.dev/github.com/hashicorp/terraform-plugin-log/tflog
+	// for more information
+	tflog.Trace(ctx, "created a resource")
 
 	diags = resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)
