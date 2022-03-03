@@ -31,7 +31,7 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: ${{ env.GO_VERSION }}
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: go mod download
       - run: go build -v .
 
@@ -56,7 +56,7 @@ jobs:
         with:
           terraform_version: ${{ matrix.terraform }}
           terraform_wrapper: false
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: go mod download
       - env:
           TF_ACC: "1"
