@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -28,7 +29,14 @@ var (
 )
 
 func main() {
+	var debug bool
+
+	flag.BoolVar(&debug, "debug", false, "set to true to run the provider with support for debuggers like delve")
+	flag.Parse()
+
 	opts := tfsdk.ServeOpts{
+		Debug: debug,
+
 		// TODO: Update this string with the published name of your provider.
 		Name: "registry.terraform.io/hashicorp/scaffolding",
 	}
