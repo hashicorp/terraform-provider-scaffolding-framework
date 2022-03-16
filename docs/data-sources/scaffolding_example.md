@@ -23,10 +23,10 @@ data "scaffolding_example" "example" {
 
 ### Optional
 
-- **configurable_attribute** (String) Example configurable attribute
+- `configurable_attribute` (String) Example configurable attribute
 
 ### Read-Only
 
-- **id** (String) Example identifier
+- `id` (String) Example identifier
 
 
