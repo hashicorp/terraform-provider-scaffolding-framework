@@ -9,6 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+var _ tfsdk.DataSourceType = exampleDataSourceType{}
+var _ tfsdk.DataSource = exampleDataSource{}
+
 type exampleDataSourceType struct{}
 
 func (t exampleDataSourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {

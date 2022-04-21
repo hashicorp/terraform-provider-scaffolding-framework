@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+var _ tfsdk.Provider = &provider{}
+
 // provider satisfies the tfsdk.Provider interface and usually is included
 // with all Resource and DataSource implementations.
 type provider struct {

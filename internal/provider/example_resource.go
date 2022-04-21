@@ -10,6 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+var _ tfsdk.ResourceType = exampleResourceType{}
+var _ tfsdk.Resource = exampleResource{}
+
 type exampleResourceType struct{}
 
 func (t exampleResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
