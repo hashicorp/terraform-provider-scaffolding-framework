@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+// Ensure provider defined types fully satisfy framework interfaces
 var _ tfsdk.Provider = &provider{}
 
 // provider satisfies the tfsdk.Provider interface and usually is included

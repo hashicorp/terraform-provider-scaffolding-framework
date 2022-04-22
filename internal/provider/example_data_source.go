@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+// Ensure provider defined types fully satisfy framework interfaces
 var _ tfsdk.DataSourceType = exampleDataSourceType{}
 var _ tfsdk.DataSource = exampleDataSource{}
 
