@@ -10,6 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// Ensure provider defined types fully satisfy framework interfaces
+var _ tfsdk.ResourceType = exampleResourceType{}
+var _ tfsdk.Resource = exampleResource{}
+
 type exampleResourceType struct{}
 
 func (t exampleResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
