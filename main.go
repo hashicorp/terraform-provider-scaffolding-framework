@@ -5,7 +5,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-provider-scaffolding-framework/internal/provider"
 )
 
@@ -34,14 +34,13 @@ func main() {
 	flag.BoolVar(&debug, "debug", false, "set to true to run the provider with support for debuggers like delve")
 	flag.Parse()
 
-	opts := tfsdk.ServeOpts{
-		Debug: debug,
-
+	opts := providerserver.ServeOpts{
 		// TODO: Update this string with the published name of your provider.
-		Name: "registry.terraform.io/hashicorp/scaffolding",
+		Address: "registry.terraform.io/hashicorp/scaffolding",
+		Debug:   debug,
 	}
 
-	err := tfsdk.Serve(context.Background(), provider.New(version), opts)
+	err := providerserver.Serve(context.Background(), provider.New(version), opts)
 
 	if err != nil {
 		log.Fatal(err.Error())
