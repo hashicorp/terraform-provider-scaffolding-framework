@@ -13,6 +13,7 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces
 var _ tfsdk.ResourceType = exampleResourceType{}
 var _ tfsdk.Resource = exampleResource{}
+var _ tfsdk.ResourceWithImportState = exampleResource{}
 
 type exampleResourceType struct{}
 
@@ -148,8 +149,6 @@ func (r exampleResource) Delete(ctx context.Context, req tfsdk.DeleteResourceReq
 	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete example, got error: %s", err))
 	//     return
 	// }
-
-	resp.State.RemoveResource(ctx)
 }
 
 func (r exampleResource) ImportState(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
