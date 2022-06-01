@@ -24,6 +24,7 @@ jobs:
       - uses: actions/setup-go@v3
         with:
           go-version-file: 'go.mod'
+          cache: true
       # This uses an action (hashicorp/ghaction-import-gpg) that assumes you set your 
       # private key in the `GPG_PRIVATE_KEY` secret and passphrase in the `PASSPHRASE`
       # secret. If you would rather own your own GPG handling, please fork this action

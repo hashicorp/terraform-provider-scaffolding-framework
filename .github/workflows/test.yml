@@ -26,6 +26,7 @@ jobs:
       - uses: actions/setup-go@v3
         with:
           go-version-file: 'go.mod'
+          cache: true
       - run: go mod download
       - run: go build -v .
 
@@ -36,6 +37,7 @@ jobs:
       - uses: actions/setup-go@v3
         with:
           go-version-file: 'go.mod'
+          cache: true
       - run: go generate ./...
       - name: git diff
         run: |
@@ -60,6 +62,7 @@ jobs:
       - uses: actions/setup-go@v3
         with:
           go-version-file: 'go.mod'
+          cache: true
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: ${{ matrix.terraform }}
