@@ -2,16 +2,18 @@ package provider
 
 import (
 	"context"
-	"log"
 
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ tfsdk.DataSourceType = exampleDataSourceType{}
-var _ tfsdk.DataSource = exampleDataSource{}
+var _ provider.DataSourceType = exampleDataSourceType{}
+var _ datasource.DataSource = exampleDataSource{}
 
 type exampleDataSourceType struct{}
 
@@ -35,7 +37,7 @@ func (t exampleDataSourceType) GetSchema(ctx context.Context) (tfsdk.Schema, dia
 	}, nil
 }
 
-func (t exampleDataSourceType) NewDataSource(ctx context.Context, in tfsdk.Provider) (tfsdk.DataSource, diag.Diagnostics) {
+func (t exampleDataSourceType) NewDataSource(ctx context.Context, in provider.Provider) (datasource.DataSource, diag.Diagnostics) {
 	provider, diags := convertProviderType(in)
 
 	return exampleDataSource{
@@ -49,22 +51,18 @@ type exampleDataSourceData struct {
 }
 
 type exampleDataSource struct {
-	provider provider
+	provider scaffoldingProvider
 }
 
-func (d exampleDataSource) Read(ctx context.Context, req tfsdk.ReadDataSourceRequest, resp *tfsdk.ReadDataSourceResponse) {
+func (d exampleDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data exampleDataSourceData
 
 	diags := req.Config.Get(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 
-	log.Printf("got here")
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	log.Printf("got here")
 
 	// If applicable, this is a great opportunity to initialize any necessary
 	// provider client data and make a call using it.
@@ -77,6 +75,10 @@ func (d exampleDataSource) Read(ctx context.Context, req tfsdk.ReadDataSourceReq
 	// For the purposes of this example code, hardcoding a response value to
 	// save into the Terraform state.
 	data.Id = types.String{Value: "example-id"}
+
+	// Write logs using the tflog package
+	// Documentation: https://terraform.io/plugin/log
+	tflog.Trace(ctx, "read a data source")
 
 	diags = resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)
