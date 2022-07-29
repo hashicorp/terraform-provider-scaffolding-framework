@@ -7,7 +7,7 @@ require (
 	github.com/hashicorp/terraform-plugin-framework v0.10.0
 	github.com/hashicorp/terraform-plugin-go v0.12.0
 	github.com/hashicorp/terraform-plugin-log v0.7.0
-	github.com/hashicorp/terraform-plugin-sdk/v2 v2.19.0
+	github.com/hashicorp/terraform-plugin-sdk/v2 v2.20.0
 )
 
 require (
