@@ -5,15 +5,17 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ tfsdk.ResourceType = exampleResourceType{}
-var _ tfsdk.Resource = exampleResource{}
-var _ tfsdk.ResourceWithImportState = exampleResource{}
+var _ provider.ResourceType = exampleResourceType{}
+var _ resource.Resource = exampleResource{}
+var _ resource.ResourceWithImportState = exampleResource{}
 
 type exampleResourceType struct{}
 
@@ -32,7 +34,7 @@ func (t exampleResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.
 				Computed:            true,
 				MarkdownDescription: "Example identifier",
 				PlanModifiers: tfsdk.AttributePlanModifiers{
-					tfsdk.UseStateForUnknown(),
+					resource.UseStateForUnknown(),
 				},
 				Type: types.StringType,
 			},
@@ -40,7 +42,7 @@ func (t exampleResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.
 	}, nil
 }
 
-func (t exampleResourceType) NewResource(ctx context.Context, in tfsdk.Provider) (tfsdk.Resource, diag.Diagnostics) {
+func (t exampleResourceType) NewResource(ctx context.Context, in provider.Provider) (resource.Resource, diag.Diagnostics) {
 	provider, diags := convertProviderType(in)
 
 	return exampleResource{
@@ -54,10 +56,10 @@ type exampleResourceData struct {
 }
 
 type exampleResource struct {
-	provider provider
+	provider scaffoldingProvider
 }
 
-func (r exampleResource) Create(ctx context.Context, req tfsdk.CreateResourceRequest, resp *tfsdk.CreateResourceResponse) {
+func (r exampleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data exampleResourceData
 
 	diags := req.Config.Get(ctx, &data)
@@ -79,16 +81,15 @@ func (r exampleResource) Create(ctx context.Context, req tfsdk.CreateResourceReq
 	// save into the Terraform state.
 	data.Id = types.String{Value: "example-id"}
 
-	// write logs using the tflog package
-	// see https://pkg.go.dev/github.com/hashicorp/terraform-plugin-log/tflog
-	// for more information
+	// Write logs using the tflog package
+	// Documentation: https://terraform.io/plugin/log
 	tflog.Trace(ctx, "created a resource")
 
 	diags = resp.State.Set(ctx, &data)
 	resp.Diagnostics.Append(diags...)
 }
 
-func (r exampleResource) Read(ctx context.Context, req tfsdk.ReadResourceRequest, resp *tfsdk.ReadResourceResponse) {
+func (r exampleResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data exampleResourceData
 
 	diags := req.State.Get(ctx, &data)
@@ -110,7 +111,7 @@ func (r exampleResource) Read(ctx context.Context, req tfsdk.ReadResourceRequest
 	resp.Diagnostics.Append(diags...)
 }
 
-func (r exampleResource) Update(ctx context.Context, req tfsdk.UpdateResourceRequest, resp *tfsdk.UpdateResourceResponse) {
+func (r exampleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data exampleResourceData
 
 	diags := req.Plan.Get(ctx, &data)
@@ -132,7 +133,7 @@ func (r exampleResource) Update(ctx context.Context, req tfsdk.UpdateResourceReq
 	resp.Diagnostics.Append(diags...)
 }
 
-func (r exampleResource) Delete(ctx context.Context, req tfsdk.DeleteResourceRequest, resp *tfsdk.DeleteResourceResponse) {
+func (r exampleResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data exampleResourceData
 
 	diags := req.State.Get(ctx, &data)
@@ -151,6 +152,6 @@ func (r exampleResource) Delete(ctx context.Context, req tfsdk.DeleteResourceReq
 	// }
 }
 
-func (r exampleResource) ImportState(ctx context.Context, req tfsdk.ImportResourceStateRequest, resp *tfsdk.ImportResourceStateResponse) {
-	tfsdk.ResourceImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+func (r exampleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
