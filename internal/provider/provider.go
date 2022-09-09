@@ -102,7 +102,7 @@ func convertProviderType(in provider.Provider) (scaffoldingProvider, diag.Diagno
 	if !ok {
 		diags.AddError(
 			"Unexpected Provider Instance Type",
-			fmt.Sprintf("While creating the data source or resource, an unexpected provider type (%T) was received. This is always a bug in the provider code and should be reported to the provider developers.", p),
+			fmt.Sprintf("While creating the data source or resource, an unexpected provider type (%T) was received. This is always a bug in the provider code and should be reported to the provider developers.", in),
 		)
 		return scaffoldingProvider{}, diags
 	}
