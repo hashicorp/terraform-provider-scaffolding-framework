@@ -32,7 +32,7 @@ type ExampleResourceModel struct {
 	Id                    types.String `tfsdk:"id"`
 }
 
-func (r *ExampleResource) TypeName(ctx context.Context, req resource.TypeNameRequest, resp *resource.TypeNameResponse) {
+func (r *ExampleResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_example"
 }
 

@@ -30,7 +30,7 @@ type ExampleDataSourceModel struct {
 	Id                    types.String `tfsdk:"id"`
 }
 
-func (d *ExampleDataSource) TypeName(ctx context.Context, req datasource.TypeNameRequest, resp *datasource.TypeNameResponse) {
+func (d *ExampleDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_example"
 }
 
