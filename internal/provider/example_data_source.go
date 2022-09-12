@@ -2,22 +2,39 @@ package provider
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
-var _ provider.DataSourceType = exampleDataSourceType{}
-var _ datasource.DataSource = exampleDataSource{}
+var _ datasource.DataSource = &ExampleDataSource{}
 
-type exampleDataSourceType struct{}
+func NewExampleDataSource() datasource.DataSource {
+	return &ExampleDataSource{}
+}
 
-func (t exampleDataSourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+// ExampleDataSource defines the data source implementation.
+type ExampleDataSource struct {
+	client *http.Client
+}
+
+// ExampleDataSourceModel describes the data source data model.
+type ExampleDataSourceModel struct {
+	ConfigurableAttribute types.String `tfsdk:"configurable_attribute"`
+	Id                    types.String `tfsdk:"id"`
+}
+
+func (d *ExampleDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_example"
+}
+
+func (d *ExampleDataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		// This description is used by the documentation generator and the language server.
 		MarkdownDescription: "Example data source",
@@ -37,28 +54,31 @@ func (t exampleDataSourceType) GetSchema(ctx context.Context) (tfsdk.Schema, dia
 	}, nil
 }
 
-func (t exampleDataSourceType) NewDataSource(ctx context.Context, in provider.Provider) (datasource.DataSource, diag.Diagnostics) {
-	provider, diags := convertProviderType(in)
+func (d *ExampleDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	// Prevent panic if the provider has not been configured.
+	if req.ProviderData == nil {
+		return
+	}
 
-	return exampleDataSource{
-		provider: provider,
-	}, diags
+	client, ok := req.ProviderData.(*http.Client)
+
+	if !ok {
+		resp.Diagnostics.AddError(
+			"Unexpected Data Source Configure Type",
+			fmt.Sprintf("Expected *http.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+		)
+
+		return
+	}
+
+	d.client = client
 }
 
-type exampleDataSourceData struct {
-	ConfigurableAttribute types.String `tfsdk:"configurable_attribute"`
-	Id                    types.String `tfsdk:"id"`
-}
+func (d *ExampleDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data ExampleDataSourceModel
 
-type exampleDataSource struct {
-	provider scaffoldingProvider
-}
-
-func (d exampleDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data exampleDataSourceData
-
-	diags := req.Config.Get(ctx, &data)
-	resp.Diagnostics.Append(diags...)
+	// Read Terraform configuration data into the model
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -66,7 +86,7 @@ func (d exampleDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 
 	// If applicable, this is a great opportunity to initialize any necessary
 	// provider client data and make a call using it.
-	// example, err := d.provider.client.ReadExample(...)
+	// httpResp, err := d.client.Do(httpReq)
 	// if err != nil {
 	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
 	//     return
@@ -80,6 +100,6 @@ func (d exampleDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	// Documentation: https://terraform.io/plugin/log
 	tflog.Trace(ctx, "read a data source")
 
-	diags = resp.State.Set(ctx, &data)
-	resp.Diagnostics.Append(diags...)
+	// Save data into Terraform state
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
