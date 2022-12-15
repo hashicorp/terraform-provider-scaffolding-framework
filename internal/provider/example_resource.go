@@ -90,7 +90,7 @@ func (r *ExampleResource) Create(ctx context.Context, req resource.CreateRequest
 
 	// If applicable, this is a great opportunity to initialize any necessary
 	// provider client data and make a call using it.
-	// httpResp, err := d.client.Do(httpReq)
+	// httpResp, err := r.client.Do(httpReq)
 	// if err != nil {
 	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create example, got error: %s", err))
 	//     return
@@ -120,7 +120,7 @@ func (r *ExampleResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	// If applicable, this is a great opportunity to initialize any necessary
 	// provider client data and make a call using it.
-	// httpResp, err := d.client.Do(httpReq)
+	// httpResp, err := r.client.Do(httpReq)
 	// if err != nil {
 	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
 	//     return
@@ -142,7 +142,7 @@ func (r *ExampleResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	// If applicable, this is a great opportunity to initialize any necessary
 	// provider client data and make a call using it.
-	// httpResp, err := d.client.Do(httpReq)
+	// httpResp, err := r.client.Do(httpReq)
 	// if err != nil {
 	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update example, got error: %s", err))
 	//     return
@@ -164,7 +164,7 @@ func (r *ExampleResource) Delete(ctx context.Context, req resource.DeleteRequest
 
 	// If applicable, this is a great opportunity to initialize any necessary
 	// provider client data and make a call using it.
-	// httpResp, err := d.client.Do(httpReq)
+	// httpResp, err := r.client.Do(httpReq)
 	// if err != nil {
 	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete example, got error: %s", err))
 	//     return
