@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Ensure provider defined types fully satisfy framework interfaces
+// Ensure provider defined types fully satisfy framework interfaces.
 var _ resource.Resource = &ExampleResource{}
 var _ resource.ResourceWithImportState = &ExampleResource{}
 
