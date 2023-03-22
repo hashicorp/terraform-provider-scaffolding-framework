@@ -24,6 +24,7 @@ resource "scaffolding_example" "example" {
 ### Optional
 
 - `configurable_attribute` (String) Example configurable attribute
+- `defaulted` (String) Example configurable attribute with default value
 
 ### Read-Only
 

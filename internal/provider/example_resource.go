@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -30,6 +31,7 @@ type ExampleResource struct {
 // ExampleResourceModel describes the resource data model.
 type ExampleResourceModel struct {
 	ConfigurableAttribute types.String `tfsdk:"configurable_attribute"`
+	Defaulted             types.String `tfsdk:"defaulted"`
 	Id                    types.String `tfsdk:"id"`
 }
 
@@ -46,6 +48,12 @@ func (r *ExampleResource) Schema(ctx context.Context, req resource.SchemaRequest
 			"configurable_attribute": schema.StringAttribute{
 				MarkdownDescription: "Example configurable attribute",
 				Optional:            true,
+			},
+			"defaulted": schema.StringAttribute{
+				MarkdownDescription: "Example configurable attribute with default value",
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("example value when not configured"),
 			},
 			"id": schema.StringAttribute{
 				Computed:            true,

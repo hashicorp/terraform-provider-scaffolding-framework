@@ -17,6 +17,7 @@ func TestAccExampleResource(t *testing.T) {
 				Config: testAccExampleResourceConfig("one"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("scaffolding_example.test", "configurable_attribute", "one"),
+					resource.TestCheckResourceAttr("scaffolding_example.test", "defaulted", "example value when not configured"),
 					resource.TestCheckResourceAttr("scaffolding_example.test", "id", "example-id"),
 				),
 			},
@@ -29,7 +30,7 @@ func TestAccExampleResource(t *testing.T) {
 				// example code does not have an actual upstream service.
 				// Once the Read method is able to refresh information from
 				// the upstream service, this can be removed.
-				ImportStateVerifyIgnore: []string{"configurable_attribute"},
+				ImportStateVerifyIgnore: []string{"configurable_attribute", "defaulted"},
 			},
 			// Update and Read testing
 			{
