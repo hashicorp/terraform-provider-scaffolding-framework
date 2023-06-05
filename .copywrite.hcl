@@ -6,10 +6,6 @@ project {
   copyright_year = 2021
 
   header_ignore = [
-    # changie tooling configuration and CHANGELOG entries (prose)
-    ".changes/unreleased/*.yaml",
-    ".changie.yaml",
-
     # examples used within documentation (prose)
     "examples/**",
 
