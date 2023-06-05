@@ -12,9 +12,6 @@ project {
     # GitHub issue template configuration
     ".github/ISSUE_TEMPLATE/*.yml",
 
-    # GitHub Actions workflow-specific configurations
-    ".github/labeler-*.yml",
-
     # golangci-lint tooling configuration
     ".golangci.yml",
 
