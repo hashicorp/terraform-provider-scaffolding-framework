@@ -90,7 +90,7 @@ func (r *ExampleResource) Configure(ctx context.Context, req resource.ConfigureR
 }
 
 func (r *ExampleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data *ExampleResourceModel
+	var data ExampleResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -120,7 +120,7 @@ func (r *ExampleResource) Create(ctx context.Context, req resource.CreateRequest
 }
 
 func (r *ExampleResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *ExampleResourceModel
+	var data ExampleResourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -142,7 +142,7 @@ func (r *ExampleResource) Read(ctx context.Context, req resource.ReadRequest, re
 }
 
 func (r *ExampleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *ExampleResourceModel
+	var data ExampleResourceModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -164,7 +164,7 @@ func (r *ExampleResource) Update(ctx context.Context, req resource.UpdateRequest
 }
 
 func (r *ExampleResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *ExampleResourceModel
+	var data ExampleResourceModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
