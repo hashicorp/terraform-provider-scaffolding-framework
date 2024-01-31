@@ -6,3 +6,10 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+  # Dependabot only updates hashicorp GHAs, external GHAs are managed by internal tooling (tsccr)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    allow:
+      - dependency-name: "hashicorp/*"
