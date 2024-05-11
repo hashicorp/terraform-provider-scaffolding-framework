@@ -1,23 +1,14 @@
-# Terraform Provider Scaffolding (Terraform Plugin Framework)
+# Terraform Provider for Bitwarden Secrets
 
-_This template repository is built on the [Terraform Plugin Framework](https://github.com/hashicorp/terraform-plugin-framework). The template repository built on the [Terraform Plugin SDK](https://github.com/hashicorp/terraform-plugin-sdk) can be found at [terraform-provider-scaffolding](https://github.com/hashicorp/terraform-provider-scaffolding). See [Which SDK Should I Use?](https://developer.hashicorp.com/terraform/plugin/framework-benefits) in the Terraform documentation for additional information._
-
-This repository is a *template* for a [Terraform](https://www.terraform.io) provider. It is intended as a starting point for creating Terraform providers, containing:
-
-- A resource and a data source (`internal/provider/`),
-- Examples (`examples/`) and generated documentation (`docs/`),
-- Miscellaneous meta files.
-
-These files contain boilerplate code that you will need to edit to create your own Terraform provider. Tutorials for creating Terraform providers can be found on the [HashiCorp Developer](https://developer.hashicorp.com/terraform/tutorials/providers-plugin-framework) platform. _Terraform Plugin Framework specific guides are titled accordingly._
-
-Please see the [GitHub template repository documentation](https://help.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-from-a-template) for how to create a new repository from this template on GitHub.
-
-Once you've written your provider, you'll want to [publish it on the Terraform Registry](https://developer.hashicorp.com/terraform/registry/providers/publishing) so that others can use it.
+This project builds a Terraform Proivder on top of Bitwardens [Secrets Manager CLI](https://bitwarden.com/help/secrets-manager-cli/). It allows for reading secrets into Data Sources, or managing secrets or projects through Resources.
 
 ## Requirements
 
 - [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.0
-- [Go](https://golang.org/doc/install) >= 1.21
+- [Secrets Manager CLI](https://bitwarden.com/help/secrets-manager-cli/) >= v0.5.0
+- [Go](https://golang.org/doc/install) >= 1.21 (development)
+
+_The CLI binary should be added to the path such that it is accessible by the Terraform provider!_
 
 ## Building The Provider
 
@@ -45,7 +36,40 @@ Then commit the changes to `go.mod` and `go.sum`.
 
 ## Using the provider
 
-Fill this in for each provider
+```tf
+terraform {
+  required_providers {
+    bitwarden-secrets = {
+      source  = "bitwarden-secrets"
+      version = ">= 0.1.0"
+    }
+  }
+}
+
+# Configure the Bitwarden Secrets Provider
+provider "bitwarden-secrets" {
+  access_token = "Token acquired from Bitwarden Secrets Web UI"
+}
+
+# Create a Terraform managed project
+resource "bitwarden-secrets_project" "example_project" {
+    name = "Terraform-Secrets"
+}
+
+# Create a Terraform managed secret
+resource "bitwarden-secrets_secret" "example" {
+    key = "test-terraform"
+    value = "hello world!"
+    project_id = bitwarden-secrets_project.example_project.id
+}
+
+# Or get a secret directly by using its id
+data "bitwarden-secrets_secret" "vpn" {
+    id = "Id of the secret"
+}
+```
+
+When reading secrets make sure the current provided access token has permissions to read from the associated project. Furthermore, when making use of a secret resource on a project managed outside of Terraform Read & Write permissions should be enabled for the access token.
 
 ## Developing the Provider
 
