@@ -1,4 +1,4 @@
-default: fmt lint generate build install    
+default: fmt lint install generate
 
 build:
 	go build -v ./...
@@ -9,7 +9,6 @@ install: build
 lint:
 	golangci-lint run
 
-# Generate docs and copywrite headers
 generate:
 	cd tools; go generate ./...
 
@@ -22,4 +21,4 @@ test:
 testacc:
 	TF_ACC=1 go test -v -cover -timeout 120m ./...
 
-.PHONY: build install lint generate fmt test testacc
+.PHONY: fmt lint test testacc build install generate
