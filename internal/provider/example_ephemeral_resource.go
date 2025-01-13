@@ -65,7 +65,7 @@ func (r *ExampleEphemeralResource) Open(ctx context.Context, req ephemeral.OpenR
 	// provider client data and make a call using it.
 	// httpResp, err := r.client.Do(httpReq)
 	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete example, got error: %s", err))
+	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
 	//     return
 	// }
 	//
