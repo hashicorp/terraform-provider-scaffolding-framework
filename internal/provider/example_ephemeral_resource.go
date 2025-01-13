@@ -25,8 +25,8 @@ type ExampleEphemeralResource struct {
 
 // ExampleEphemeralResourceModel describes the ephemeral resource data model.
 type ExampleEphemeralResourceModel struct {
-	ConfigurableAttribute types.String `tfsdk:"configurable_attribute"`
 	Id                    types.String `tfsdk:"id"`
+	ConfigurableAttribute types.String `tfsdk:"configurable_attribute"`
 }
 
 func (r *ExampleEphemeralResource) Metadata(_ context.Context, req ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
