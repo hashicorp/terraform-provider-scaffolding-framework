@@ -25,8 +25,8 @@ type ExampleEphemeralResource struct {
 
 // ExampleEphemeralResourceModel describes the ephemeral resource data model.
 type ExampleEphemeralResourceModel struct {
-	Id                    types.String `tfsdk:"id"`
 	ConfigurableAttribute types.String `tfsdk:"configurable_attribute"`
+	Value                 types.String `tfsdk:"value"`
 }
 
 func (r *ExampleEphemeralResource) Metadata(_ context.Context, req ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
@@ -35,23 +35,27 @@ func (r *ExampleEphemeralResource) Metadata(_ context.Context, req ephemeral.Met
 
 func (r *ExampleEphemeralResource) Schema(ctx context.Context, _ ephemeral.SchemaRequest, resp *ephemeral.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		// This description is used by the documentation generator and the language server.
+		MarkdownDescription: "Example ephemeral resource",
+
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Example identifier",
-			},
 			"configurable_attribute": schema.StringAttribute{
 				MarkdownDescription: "Example configurable attribute",
-				Required:            true,
+				Required:            true, // Ephemeral resources expect their dependencies to already exist.
+			},
+			"value": schema.StringAttribute{
+				Computed: true,
+				// Sensitive:           true, // If applicable, mark the attribute as sensitive.
+				MarkdownDescription: "Example value",
 			},
 		},
 	}
 }
 
 func (r *ExampleEphemeralResource) Open(ctx context.Context, req ephemeral.OpenRequest, resp *ephemeral.OpenResponse) {
-	var data ExampleEphemeralResource
+	var data ExampleEphemeralResourceModel
 
-	// Read Terraform prior state data into the model
+	// Read Terraform config data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -61,10 +65,13 @@ func (r *ExampleEphemeralResource) Open(ctx context.Context, req ephemeral.OpenR
 	// provider client data and make a call using it.
 	// httpResp, err := r.client.Do(httpReq)
 	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
+	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete example, got error: %s", err))
 	//     return
 	// }
+	//
+	// However, this example hardcodes setting the token attribute to a specific value for brevity.
+	data.Value = types.StringValue("token-123")
 
-	// Save updated data into Terraform state
+	// Save data into ephemeral result data
 	resp.Diagnostics.Append(resp.Result.Set(ctx, &data)...)
 }
