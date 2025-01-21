@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 )
 
@@ -24,9 +26,12 @@ func TestExampleFunction_Known(t *testing.T) {
 					value = provider::scaffolding::example("testvalue")
 				}
 				`,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckOutput("test", "testvalue"),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownOutputValue(
+						"test",
+						knownvalue.StringExact("testvalue"),
+					),
+				},
 			},
 		},
 	})
@@ -69,9 +74,12 @@ func TestExampleFunction_Unknown(t *testing.T) {
 					value = provider::scaffolding::example(terraform_data.test.output)
 				}
 				`,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckOutput("test", "testvalue"),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownOutputValue(
+						"test",
+						knownvalue.StringExact("testvalue"),
+					),
+				},
 			},
 		},
 	})
