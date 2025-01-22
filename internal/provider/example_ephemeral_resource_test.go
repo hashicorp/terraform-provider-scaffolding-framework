@@ -26,7 +26,11 @@ func TestAccExampleEphemeralResource(t *testing.T) {
 			{
 				Config: testAccExampleEphemeralResourceConfig("example"),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue("echo.test", tfjsonpath.New("data").AtMapKey("value"), knownvalue.StringExact("token-123")),
+					statecheck.ExpectKnownValue(
+						"echo.test",
+						tfjsonpath.New("data").AtMapKey("value"),
+						knownvalue.StringExact("token-123"),
+					),
 				},
 			},
 		},

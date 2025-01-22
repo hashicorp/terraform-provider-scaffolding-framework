@@ -8,6 +8,9 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 )
 
 func TestAccExampleResource(t *testing.T) {
@@ -18,11 +21,23 @@ func TestAccExampleResource(t *testing.T) {
 			// Create and Read testing
 			{
 				Config: testAccExampleResourceConfig("one"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("scaffolding_example.test", "configurable_attribute", "one"),
-					resource.TestCheckResourceAttr("scaffolding_example.test", "defaulted", "example value when not configured"),
-					resource.TestCheckResourceAttr("scaffolding_example.test", "id", "example-id"),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(
+						"scaffolding_example.test",
+						tfjsonpath.New("id"),
+						knownvalue.StringExact("example-id"),
+					),
+					statecheck.ExpectKnownValue(
+						"scaffolding_example.test",
+						tfjsonpath.New("defaulted"),
+						knownvalue.StringExact("example value when not configured"),
+					),
+					statecheck.ExpectKnownValue(
+						"scaffolding_example.test",
+						tfjsonpath.New("configurable_attribute"),
+						knownvalue.StringExact("one"),
+					),
+				},
 			},
 			// ImportState testing
 			{
@@ -38,9 +53,23 @@ func TestAccExampleResource(t *testing.T) {
 			// Update and Read testing
 			{
 				Config: testAccExampleResourceConfig("two"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("scaffolding_example.test", "configurable_attribute", "two"),
-				),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(
+						"scaffolding_example.test",
+						tfjsonpath.New("id"),
+						knownvalue.StringExact("example-id"),
+					),
+					statecheck.ExpectKnownValue(
+						"scaffolding_example.test",
+						tfjsonpath.New("defaulted"),
+						knownvalue.StringExact("example value when not configured"),
+					),
+					statecheck.ExpectKnownValue(
+						"scaffolding_example.test",
+						tfjsonpath.New("configurable_attribute"),
+						knownvalue.StringExact("two"),
+					),
+				},
 			},
 			// Delete testing automatically occurs in TestCase
 		},
