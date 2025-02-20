@@ -3,7 +3,7 @@ module tools
 go 1.22.7
 
 require (
-	github.com/hashicorp/copywrite v0.20.0
+	github.com/hashicorp/copywrite v0.21.0
 	github.com/hashicorp/terraform-plugin-docs v0.20.1
 )
 
