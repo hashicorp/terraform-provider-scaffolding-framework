@@ -29,3 +29,11 @@ resource "scaffolding_example" "example" {
 ### Read-Only
 
 - `id` (String) Example identifier
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+terraform import scaffolding_example.test "id-123"
+```
