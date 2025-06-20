@@ -8,11 +8,23 @@ updates:
     schedule:
       # Check for updates to Go modules every weekday
       interval: "daily"
+    groups:
+      # Group all terraform-plugin-(go|sdk|framework|testing) dependencies together
+      "terraform-plugin":
+        patterns:
+          - "github.com/hashicorp/terraform-plugin-*"
   - package-ecosystem: "gomod"
     directory: "/tools"
     schedule:
       interval: "daily"
   - package-ecosystem: "github-actions"
     directory: "/"
+    groups:
+      "github-actions":
+        patterns:
+          - "*" # Group all GitHub Actions dependencies together
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Etc/UTC"
