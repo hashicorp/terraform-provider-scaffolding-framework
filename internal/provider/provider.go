@@ -39,7 +39,20 @@ func (p *hashicupsProvider) Metadata(_ context.Context, _ provider.MetadataReque
 
 // Schema defines the provider-level schema for configuration data.
 func (p *hashicupsProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
-	resp.Schema = schema.Schema{}
+    resp.Schema = schema.Schema{
+        Attributes: map[string]schema.Attribute{
+            "host": schema.StringAttribute{
+                Optional: true,
+            },
+            "username": schema.StringAttribute{
+                Optional: true,
+            },
+            "password": schema.StringAttribute{
+                Optional:  true,
+                Sensitive: true,
+            },
+        },
+    }
 }
 
 // Configure prepares a HashiCups API client for data sources and resources.
