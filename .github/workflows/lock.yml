@@ -9,6 +9,10 @@ on:
 jobs:
   lock:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+      discussions: write
     steps:
       # NOTE: When TSCCR updates the GitHub action version, update the template workflow file to avoid drift:
       # https://github.com/hashicorp/terraform-devex-repos/blob/main/modules/repo/workflows/lock.tftpl
