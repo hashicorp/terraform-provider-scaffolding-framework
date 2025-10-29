@@ -62,3 +62,22 @@ In order to run the full suite of Acceptance tests, run `make testacc`.
 ```shell
 make testacc
 ```
+
+## Releasing the new provider
+
+After you have succesfully created the provider you can release it for others by following these steps:
+
+1. [Sign-up for app.terraform.io account](https://app.terraform.io/public/signup/account)
+2. [Create new organization](https://app.terraform.io/app/organizations)
+3. Visit: https://app.terraform.io/app/<your-org>/registry/modules/add and connect your Github repository
+4. Generate new keys for Github Actions: `cd keys && ./setup-github-action-signing-key.sh`
+5. Get the public key `cat public-key.asc | pbcopy`
+6. Open https://app.terraform.io/app/<your-org>/registry/public-namespaces/<your-org>/settings and click **New GPG Key** and paste.
+7. Then tag a new release and push it to GitHub:
+
+```sh
+git tag v0.1.0 -m "Initial public release"
+git push origin --tags
+```
+
+[See more in the docs](https://developer.hashicorp.com/terraform/registry/providers/publishing)

@@ -33,3 +33,7 @@ website/vendor
 
 # Keep windows files with windows line endings
 *.winfile eol=crlf
+
+# Don't store the secrets
+keys/*
+!keys/setup-github-action-signing-key.sh
