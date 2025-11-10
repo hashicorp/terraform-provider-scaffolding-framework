@@ -20,5 +20,8 @@ project {
 
     # GoReleaser tooling configuration
     ".goreleaser.yml",
+
+    # Helper script to create GPG signing keys for Github
+    "keys/setup-github-action-signing-key.sh"
   ]
 }
