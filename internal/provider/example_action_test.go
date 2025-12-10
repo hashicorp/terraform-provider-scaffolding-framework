@@ -7,10 +7,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 )
 
 func TestAccExampleAction(t *testing.T) {
 	resource.Test(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(tfversion.Version1_14_0),
+		},
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -19,7 +23,7 @@ func TestAccExampleAction(t *testing.T) {
 				PostApplyFunc: func() {
 					// Test the results of an action operation.
 					// Actions should not affect existing resources managed
-					// by Terraform, so testing should be scoped to real-world effects,
+					// by Terraform, so testing should be scoped to real-world side effects,
 					// rather than Terraform plan or state values.
 					//
 					// For example, an action that changes the contents of a local file
