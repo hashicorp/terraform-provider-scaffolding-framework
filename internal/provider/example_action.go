@@ -72,9 +72,9 @@ func (e *ExampleAction) Configure(ctx context.Context, req action.ConfigureReque
 
 func (e *ExampleAction) Invoke(ctx context.Context, req action.InvokeRequest, resp *action.InvokeResponse) {
 	// Send a progress message back to Terraform
-	resp.SendProgress = func(event action.InvokeProgressEvent) {
-		event.Message = "starting action invocation"
-	}
+	resp.SendProgress(action.InvokeProgressEvent{
+		Message: "starting action invocation",
+	})
 
 	var data ExampleActionModel
 
@@ -98,7 +98,7 @@ func (e *ExampleAction) Invoke(ctx context.Context, req action.InvokeRequest, re
 	tflog.Trace(ctx, "invoke an action")
 
 	// Send a progress message back to Terraform
-	resp.SendProgress = func(event action.InvokeProgressEvent) {
-		event.Message = "finished action invocation"
-	}
+	resp.SendProgress(action.InvokeProgressEvent{
+		Message: "finished action invocation",
+	})
 }
