@@ -34,7 +34,6 @@ linters:
       rules:
         main:
           list-mode: lax # a package is allowed if it doesn't match the deny list or the allow rule is more specific (longer) than the deny rule.
-          files: $all
           deny:
             - pkg: "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource" # prefix
               desc: "Use github.com/hashicorp/terraform-plugin-testing/v2/helper/resource"
