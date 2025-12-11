@@ -1,6 +1,6 @@
 module github.com/hashicorp/terraform-provider-scaffolding-framework
 
-go 1.24.0
+go 1.25.5
 
 require (
 	github.com/hashicorp/terraform-plugin-framework v1.17.0
