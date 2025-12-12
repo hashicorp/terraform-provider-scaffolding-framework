@@ -7,6 +7,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/function"
@@ -20,6 +21,7 @@ import (
 var _ provider.Provider = &ScaffoldingProvider{}
 var _ provider.ProviderWithFunctions = &ScaffoldingProvider{}
 var _ provider.ProviderWithEphemeralResources = &ScaffoldingProvider{}
+var _ provider.ProviderWithActions = &ScaffoldingProvider{}
 
 // ScaffoldingProvider defines the provider implementation.
 type ScaffoldingProvider struct {
@@ -89,6 +91,12 @@ func (p *ScaffoldingProvider) DataSources(ctx context.Context) []func() datasour
 func (p *ScaffoldingProvider) Functions(ctx context.Context) []func() function.Function {
 	return []func() function.Function{
 		NewExampleFunction,
+	}
+}
+
+func (p *ScaffoldingProvider) Actions(ctx context.Context) []func() action.Action {
+	return []func() action.Action{
+		NewExampleAction,
 	}
 }
 
