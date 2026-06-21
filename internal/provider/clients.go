@@ -1,32 +1,49 @@
-package sdk
+package provider
 
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/eu-sovereign-cloud/go-sdk/secapi"
 )
 
-type Clients struct {
+const (
+	defaultRetryDelay       = 30 * time.Second
+	defaultRetryInterval    = 10 * time.Second
+	defaultRetryMaxAttempts = 5
+)
+
+type clients struct {
+	Tenant string
 	Region string
+
+	RetryDelay       time.Duration
+	RetryInterval    time.Duration
+	RetryMaxAttempts int
 
 	GlobalClient   *secapi.GlobalClient
 	RegionalClient *secapi.RegionalClient
 }
 
-type Config struct {
+type clientConfig struct {
 	Token  string
+	Tenant string
 	Region string
 
-	GlobalProviders *ConfigGlobalProviders
+	RetryDelay       time.Duration
+	RetryInterval    time.Duration
+	RetryMaxAttempts int
+
+	GlobalProviders *clientConfigGlobalProviders
 }
 
-type ConfigGlobalProviders struct {
+type clientConfigGlobalProviders struct {
 	RegionV1        string
 	AuthorizationV1 string
 }
 
-func InitClients(ctx context.Context, config *Config) (*Clients, error) {
+func initClients(ctx context.Context, config *clientConfig) (*clients, error) {
 	regionV1Endpoint := config.GlobalProviders.RegionV1
 	authV1Endpoint := config.GlobalProviders.AuthorizationV1
 
@@ -48,9 +65,15 @@ func InitClients(ctx context.Context, config *Config) (*Clients, error) {
 		return nil, fmt.Errorf("failed to create regional client: %w", err)
 	}
 
-	return &Clients{
+	return &clients{
+		Tenant: config.Tenant,
+		Region: config.Region,
+
+		RetryDelay:       config.RetryDelay,
+		RetryInterval:    config.RetryInterval,
+		RetryMaxAttempts: config.RetryMaxAttempts,
+
 		GlobalClient:   globalClient,
 		RegionalClient: regionalClient,
-		Region:         config.Region,
 	}, nil
 }
