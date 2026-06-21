@@ -1,5 +1,5 @@
 data "seca_workspace" "example" {
-  name   = "workspace-1"
+  name = "workspace-1"
 }
 
 output "workspace_tenant" {
