@@ -1,0 +1,4 @@
+[submodule "spec"]
+	path = spec
+	url = git@github.com:eu-sovereign-cloud/spec.git
+	tag = v1.3

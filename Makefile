@@ -2,6 +2,12 @@ GO := go
 TOOLS_GOMOD := -modfile=./tools/go.mod
 GO_TOOL := $(GO) run $(TOOLS_GOMOD) -mod=mod
 
+.PHONY: update
+update:
+	@echo "Updating submodules..."
+	git pull --recurse-submodules
+	git submodule update --remote --recursive
+
 .PHONY: build
 build:
 	@echo "Building..."
