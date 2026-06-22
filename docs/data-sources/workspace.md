@@ -20,8 +20,20 @@ data "seca_workspace" "example" {
 output "workspace_tenant" {
   value = data.seca_workspace.example.tenant
 }
+output "workspace_resource_region" {
+  value = data.seca_workspace.example.region
+}
 output "workspace_resource_provider" {
-  value = data.seca_workspace.example.provider
+  value = data.seca_workspace.example.resource_provider
+}
+output "workspace_resource_created_at" {
+  value = data.seca_workspace.example.created_at
+}
+output "workspace_resource_deleted_at" {
+  value = data.seca_workspace.example.deleted_at
+}
+output "workspace_resource_last_modified_at" {
+  value = data.seca_workspace.example.last_modified_at
 }
 
 output "workspace_labels" {
@@ -49,8 +61,12 @@ output "workspace_state" {
 ### Read-Only
 
 - `annotations` (Map of String)
+- `created_at` (String)
+- `deleted_at` (String)
 - `extensions` (Map of String)
 - `labels` (Map of String)
+- `last_modified_at` (String)
+- `region` (String)
 - `resource_provider` (String)
 - `state` (String)
 - `tenant` (String)

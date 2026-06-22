@@ -15,6 +15,29 @@ description: |-
 ```terraform
 resource "seca_workspace" "example" {
   name = "workspace-1"
+
+  labels      = []
+  annotations = []
+  extensions  = []
+}
+
+output "workspace_tenant" {
+  value = seca_workspace.example.tenant
+}
+output "workspace_resource_region" {
+  value = seca_workspace.example.region
+}
+output "workspace_resource_provider" {
+  value = seca_workspace.example.resource_provider
+}
+output "workspace_resource_created_at" {
+  value = seca_workspace.example.created_at
+}
+output "workspace_resource_deleted_at" {
+  value = seca_workspace.example.deleted_at
+}
+output "workspace_resource_last_modified_at" {
+  value = seca_workspace.example.last_modified_at
 }
 ```
 
@@ -33,5 +56,9 @@ resource "seca_workspace" "example" {
 
 ### Read-Only
 
+- `created_at` (String)
+- `deleted_at` (String)
+- `last_modified_at` (String)
+- `region` (String)
 - `resource_provider` (String)
 - `tenant` (String)
