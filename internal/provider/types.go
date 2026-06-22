@@ -6,6 +6,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	sdk "github.com/eu-sovereign-cloud/go-sdk/pkg/spec/schema"
 )
 
 func numberToDuration(n types.Number) time.Duration {
@@ -42,4 +44,32 @@ func fromStringMap(ctx context.Context, m map[string]string) (types.Map, diag.Di
 		return types.MapNull(types.StringType), nil
 	}
 	return types.MapValueFrom(ctx, types.StringType, m)
+}
+
+func fromTime(t time.Time) types.String {
+	if t.IsZero() {
+		return types.StringNull()
+	}
+	return types.StringValue(t.Format(time.RFC3339))
+}
+
+func fromTimePtr(t *time.Time) types.String {
+	if t == nil {
+		return types.StringNull()
+	}
+	return fromTime(*t)
+}
+
+func fromIntPtr(n *int) types.Int64 {
+	if n == nil {
+		return types.Int64Null()
+	}
+	return types.Int64Value(int64(*n))
+}
+
+func fromRefPtr(ref *sdk.Reference) types.String {
+	if ref == nil {
+		return types.StringNull()
+	}
+	return types.StringValue(ref.Resource)
 }

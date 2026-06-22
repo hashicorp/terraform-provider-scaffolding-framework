@@ -139,11 +139,17 @@ func (p *SecaProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 func (p *SecaProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		newWorkspaceResource,
+		newImageResource,
+		newBlockStorageResource,
 	}
 }
 
 func (p *SecaProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		newWorkspaceDataSource,
+		newRegionDataSource,
+		newImageDataSource,
+		newBlockStorageDataSource,
+		newStorageSkuDataSource,
 	}
 }
