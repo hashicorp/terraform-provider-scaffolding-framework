@@ -2,11 +2,23 @@ data "seca_instance_sku" "example" {
   name = "DXS"
 }
 
-output "instance_sku_provider" {
-  value = data.seca_instance_sku.example.provider
+output "instance_sku_tenant" {
+  value = data.seca_instance_sku.example.tenant
 }
-output "instance_sku_tenant_id" {
-  value = data.seca_instance_sku.example.tenant_id
+output "instance_sku_region" {
+  value = data.seca_instance_sku.example.region
+}
+output "instance_sku_resource_provider" {
+  value = data.seca_instance_sku.example.resource_provider
+}
+output "instance_sku_created_at" {
+  value = data.seca_instance_sku.example.created_at
+}
+output "instance_sku_deleted_at" {
+  value = data.seca_instance_sku.example.deleted_at
+}
+output "instance_sku_last_modified_at" {
+  value = data.seca_instance_sku.example.last_modified_at
 }
 
 output "instance_sku_labels" {
@@ -24,8 +36,4 @@ output "instance_sku_vcpu" {
 }
 output "instance_sku_ram" {
   value = data.seca_instance_sku.example.ram
-}
-
-output "instance_sku_state" {
-  value = data.seca_instance_sku.example.state
 }

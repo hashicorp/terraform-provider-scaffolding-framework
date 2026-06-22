@@ -7,14 +7,26 @@ data "seca_internet_gateway" "example" {
   workspace_id = data.seca_workspace.example.id
 }
 
-output "internet_gateway_provider" {
-  value = data.seca_internet_gateway.example.provider
-}
-output "internet_gateway_tenant_id" {
-  value = data.seca_internet_gateway.example.tenant_id
+output "internet_gateway_tenant" {
+  value = data.seca_internet_gateway.example.tenant
 }
 output "internet_gateway_workspace_id" {
   value = data.seca_internet_gateway.example.workspace_id
+}
+output "internet_gateway_region" {
+  value = data.seca_internet_gateway.example.region
+}
+output "internet_gateway_resource_provider" {
+  value = data.seca_internet_gateway.example.resource_provider
+}
+output "internet_gateway_created_at" {
+  value = data.seca_internet_gateway.example.created_at
+}
+output "internet_gateway_deleted_at" {
+  value = data.seca_internet_gateway.example.deleted_at
+}
+output "internet_gateway_last_modified_at" {
+  value = data.seca_internet_gateway.example.last_modified_at
 }
 
 output "internet_gateway_labels" {

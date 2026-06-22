@@ -26,4 +26,37 @@ resource "seca_security_group" "example" {
       ]
     }
   ]
+
+  labels      = []
+  annotations = []
+  extensions  = []
+}
+
+output "security_group_tenant" {
+  value = seca_security_group.example.tenant
+}
+output "security_group_workspace_id" {
+  value = seca_security_group.example.workspace_id
+}
+output "security_group_region" {
+  value = seca_security_group.example.region
+}
+output "security_group_resource_provider" {
+  value = seca_security_group.example.resource_provider
+}
+output "security_group_created_at" {
+  value = seca_security_group.example.created_at
+}
+output "security_group_deleted_at" {
+  value = seca_security_group.example.deleted_at
+}
+output "security_group_last_modified_at" {
+  value = seca_security_group.example.last_modified_at
+}
+
+output "security_group_rules" {
+  value = seca_security_group.example.rules
+}
+output "security_group_rule_refs" {
+  value = seca_security_group.example.rule_refs
 }

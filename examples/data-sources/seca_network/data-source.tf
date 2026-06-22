@@ -7,14 +7,26 @@ data "seca_network" "example" {
   workspace_id = data.seca_workspace.example.id
 }
 
-output "network_provider" {
-  value = data.seca_network.example.provider
-}
-output "network_tenant_id" {
-  value = data.seca_network.example.tenant_id
+output "network_tenant" {
+  value = data.seca_network.example.tenant
 }
 output "network_workspace_id" {
   value = data.seca_network.example.workspace_id
+}
+output "network_region" {
+  value = data.seca_network.example.region
+}
+output "network_resource_provider" {
+  value = data.seca_network.example.resource_provider
+}
+output "network_created_at" {
+  value = data.seca_network.example.created_at
+}
+output "network_deleted_at" {
+  value = data.seca_network.example.deleted_at
+}
+output "network_last_modified_at" {
+  value = data.seca_network.example.last_modified_at
 }
 
 output "network_labels" {

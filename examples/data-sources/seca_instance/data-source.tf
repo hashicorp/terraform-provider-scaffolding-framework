@@ -7,14 +7,26 @@ data "seca_instance" "example" {
   workspace_id = data.seca_workspace.example.id
 }
 
-output "instance_provider" {
-  value = data.seca_instance.example.provider
-}
-output "instance_tenant_id" {
-  value = data.seca_instance.example.tenant_id
+output "instance_tenant" {
+  value = data.seca_instance.example.tenant
 }
 output "instance_workspace_id" {
   value = data.seca_instance.example.workspace_id
+}
+output "instance_region" {
+  value = data.seca_instance.example.region
+}
+output "instance_resource_provider" {
+  value = data.seca_instance.example.resource_provider
+}
+output "instance_created_at" {
+  value = data.seca_instance.example.created_at
+}
+output "instance_deleted_at" {
+  value = data.seca_instance.example.deleted_at
+}
+output "instance_last_modified_at" {
+  value = data.seca_instance.example.last_modified_at
 }
 
 output "instance_labels" {

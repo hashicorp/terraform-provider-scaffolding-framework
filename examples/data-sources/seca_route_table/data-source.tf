@@ -13,17 +13,29 @@ data "seca_route_table" "example" {
   network_id   = data.seca_network.example.id
 }
 
-output "route_table_provider" {
-  value = data.seca_route_table.example.provider
-}
-output "route_table_tenant_id" {
-  value = data.seca_route_table.example.tenant_id
+output "route_table_tenant" {
+  value = data.seca_route_table.example.tenant
 }
 output "route_table_workspace_id" {
   value = data.seca_route_table.example.workspace_id
 }
 output "route_table_network_id" {
   value = data.seca_route_table.example.network_id
+}
+output "route_table_region" {
+  value = data.seca_route_table.example.region
+}
+output "route_table_resource_provider" {
+  value = data.seca_route_table.example.resource_provider
+}
+output "route_table_created_at" {
+  value = data.seca_route_table.example.created_at
+}
+output "route_table_deleted_at" {
+  value = data.seca_route_table.example.deleted_at
+}
+output "route_table_last_modified_at" {
+  value = data.seca_route_table.example.last_modified_at
 }
 
 output "route_table_labels" {

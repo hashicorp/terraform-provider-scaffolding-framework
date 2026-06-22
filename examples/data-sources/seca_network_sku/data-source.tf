@@ -2,11 +2,14 @@ data "seca_network_sku" "example" {
   name = "N10K"
 }
 
-output "network_sku_provider" {
-  value = data.seca_network_sku.example.provider
+output "network_sku_tenant" {
+  value = data.seca_network_sku.example.tenant
 }
-output "network_sku_tenant_id" {
-  value = data.seca_network_sku.example.tenant_id
+output "network_sku_region" {
+  value = data.seca_network_sku.example.region
+}
+output "network_sku_resource_provider" {
+  value = data.seca_network_sku.example.resource_provider
 }
 
 output "network_sku_labels" {
@@ -24,8 +27,4 @@ output "network_sku_bandwidth" {
 }
 output "network_sku_packets" {
   value = data.seca_network_sku.example.packets
-}
-
-output "network_sku_state" {
-  value = data.seca_network_sku.example.state
 }

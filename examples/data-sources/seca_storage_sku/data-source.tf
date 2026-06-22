@@ -2,11 +2,14 @@ data "seca_storage_sku" "example" {
   name = "RD500"
 }
 
-output "storage_sku_provider" {
-  value = data.seca_storage_sku.example.provider
+output "storage_sku_tenant" {
+  value = data.seca_storage_sku.example.tenant
 }
-output "storage_sku_tenant_id" {
-  value = data.seca_storage_sku.example.tenant_id
+output "storage_sku_region" {
+  value = data.seca_storage_sku.example.region
+}
+output "storage_sku_resource_provider" {
+  value = data.seca_storage_sku.example.resource_provider
 }
 
 output "storage_sku_labels" {
@@ -27,8 +30,4 @@ output "storage_sku_type" {
 }
 output "storage_sku_min_volume_size" {
   value = data.seca_storage_sku.example.min_volume_size
-}
-
-output "storage_sku_state" {
-  value = data.seca_storage_sku.example.state
 }
