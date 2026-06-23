@@ -2,14 +2,14 @@ data "seca_workspace" "example" {
   name = "workspace-1"
 }
 
+output "workspace_id" {
+  value = data.seca_workspace.example.id
+}
 output "workspace_tenant" {
   value = data.seca_workspace.example.tenant
 }
 output "workspace_resource_region" {
   value = data.seca_workspace.example.region
-}
-output "workspace_resource_provider" {
-  value = data.seca_workspace.example.resource_provider
 }
 output "workspace_resource_created_at" {
   value = data.seca_workspace.example.created_at

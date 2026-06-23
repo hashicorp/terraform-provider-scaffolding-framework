@@ -2,14 +2,14 @@ data "seca_storage_sku" "example" {
   name = "RD500"
 }
 
+output "storage_sku_id" {
+  value = data.seca_storage_sku.example.id
+}
 output "storage_sku_tenant" {
   value = data.seca_storage_sku.example.tenant
 }
 output "storage_sku_region" {
   value = data.seca_storage_sku.example.region
-}
-output "storage_sku_resource_provider" {
-  value = data.seca_storage_sku.example.resource_provider
 }
 
 output "storage_sku_labels" {

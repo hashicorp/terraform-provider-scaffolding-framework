@@ -2,14 +2,14 @@ data "seca_image" "example" {
   name = "image-1"
 }
 
+output "image_id" {
+  value = data.seca_image.example.id
+}
 output "image_tenant" {
   value = data.seca_image.example.tenant
 }
 output "image_region" {
   value = data.seca_image.example.region
-}
-output "image_resource_provider" {
-  value = data.seca_image.example.resource_provider
 }
 output "image_created_at" {
   value = data.seca_image.example.created_at

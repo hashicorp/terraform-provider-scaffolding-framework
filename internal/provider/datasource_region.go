@@ -44,11 +44,11 @@ var regionProviderAttrTypes = map[string]attr.Type{
 }
 
 type RegionDataSourceModel struct {
-	Name             types.String `tfsdk:"name"`
-	ResourceProvider types.String `tfsdk:"resource_provider"`
-	CreatedAt        types.String `tfsdk:"created_at"`
-	DeletedAt        types.String `tfsdk:"deleted_at"`
-	LastModifiedAt   types.String `tfsdk:"last_modified_at"`
+	Id             types.String `tfsdk:"id"`
+	Name           types.String `tfsdk:"name"`
+	CreatedAt      types.String `tfsdk:"created_at"`
+	DeletedAt      types.String `tfsdk:"deleted_at"`
+	LastModifiedAt types.String `tfsdk:"last_modified_at"`
 
 	AvailableZones types.List `tfsdk:"available_zones"`
 	Providers      types.List `tfsdk:"providers"`
@@ -57,11 +57,11 @@ type RegionDataSourceModel struct {
 func (d *RegionDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = tfschema.Schema{
 		Attributes: map[string]tfschema.Attribute{
+			"id": tfschema.StringAttribute{
+				Computed: true,
+			},
 			"name": tfschema.StringAttribute{
 				Required: true,
-			},
-			"resource_provider": tfschema.StringAttribute{
-				Computed: true,
 			},
 			"created_at": tfschema.StringAttribute{
 				Computed: true,
@@ -144,9 +144,9 @@ func regionToDataSourceModel(ctx context.Context, region *sdk.Region) (RegionDat
 	var diags diag.Diagnostics
 
 	model := RegionDataSourceModel{}
+	model.Id = types.StringValue(region.Metadata.Ref)
 
 	model.Name = types.StringValue(region.Metadata.Name)
-	model.ResourceProvider = types.StringValue(region.Metadata.Provider)
 	model.CreatedAt = fromTime(region.Metadata.CreatedAt)
 	model.DeletedAt = fromTimePtr(region.Metadata.DeletedAt)
 	model.LastModifiedAt = fromTime(region.Metadata.LastModifiedAt)

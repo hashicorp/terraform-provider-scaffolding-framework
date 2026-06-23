@@ -35,7 +35,6 @@ func TestAccWorkspace(t *testing.T) {
 					resource.TestCheckResourceAttr("seca_workspace.test", "name", "workspace-1"),
 					resource.TestCheckResourceAttr("seca_workspace.test", "tenant", "seca"),
 					resource.TestCheckResourceAttr("seca_workspace.test", "region", "region"),
-					resource.TestCheckResourceAttr("seca_workspace.test", "resource_provider", "seca.workspace/v1"),
 				),
 			},
 			{
@@ -44,12 +43,10 @@ func TestAccWorkspace(t *testing.T) {
 					resource.TestCheckResourceAttr("seca_workspace.test", "name", "workspace-1"),
 					resource.TestCheckResourceAttr("seca_workspace.test", "tenant", "seca"),
 					resource.TestCheckResourceAttr("seca_workspace.test", "region", "region"),
-					resource.TestCheckResourceAttr("seca_workspace.test", "resource_provider", "seca.workspace/v1"),
 
 					resource.TestCheckResourceAttr("data.seca_workspace.test", "name", "workspace-1"),
 					resource.TestCheckResourceAttr("data.seca_workspace.test", "tenant", "seca"),
 					resource.TestCheckResourceAttr("seca_workspace.test", "region", "region"),
-					resource.TestCheckResourceAttr("data.seca_workspace.test", "resource_provider", "seca.workspace/v1"),
 					resource.TestCheckResourceAttr("data.seca_workspace.test", "state", "active"),
 				),
 			},

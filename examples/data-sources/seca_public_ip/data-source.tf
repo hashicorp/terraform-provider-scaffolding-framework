@@ -7,6 +7,9 @@ data "seca_public_ip" "example" {
   workspace_id = data.seca_workspace.example.id
 }
 
+output "public_ip_id" {
+  value = data.seca_public_ip.example.id
+}
 output "public_ip_tenant" {
   value = data.seca_public_ip.example.tenant
 }

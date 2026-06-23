@@ -33,13 +33,12 @@ resource "seca_network" "network" {
   cidr = {
     ipv4 = "10.100.0.0/16"
   }
-  route_table_id = seca_route_table.route_table.id # circular reference ?
 }
 
 resource "seca_route_table" "route_table" {
   name         = "route-table-1"
   workspace_id = seca_workspace.workspace.id
-  network_id   = seca_network.network.id # circular reference ?
+  network_id   = seca_network.network.id
 
   routes = [
     {
@@ -57,6 +56,7 @@ resource "seca_subnet" "subnet" {
   cidr = {
     ipv4 = "10.100.1.0/24"
   }
+  route_table_id = seca_route_table.route_table.id
 }
 
 resource "seca_security_group" "security_group" {

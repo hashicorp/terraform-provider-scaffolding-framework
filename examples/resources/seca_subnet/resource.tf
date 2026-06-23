@@ -28,6 +28,9 @@ resource "seca_subnet" "example" {
   extensions  = []
 }
 
+output "subnet_id" {
+  value = seca_subnet.example.id
+}
 output "subnet_tenant" {
   value = seca_subnet.example.tenant
 }

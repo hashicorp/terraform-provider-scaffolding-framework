@@ -33,6 +33,9 @@ resource "seca_instance" "example" {
   extensions  = []
 }
 
+output "instance_id" {
+  value = seca_instance.example.id
+}
 output "instance_tenant" {
   value = seca_instance.example.tenant
 }

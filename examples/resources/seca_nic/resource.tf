@@ -19,6 +19,9 @@ resource "seca_nic" "example" {
   extensions  = []
 }
 
+output "nic_id" {
+  value = seca_nic.example.id
+}
 output "nic_tenant" {
   value = seca_nic.example.tenant
 }

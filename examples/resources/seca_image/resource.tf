@@ -8,7 +8,7 @@ data "seca_workspace" "example" {
 
 data "seca_block_storage" "example" {
   name         = "block-storage-1"
-  workspace_id = data.seca_workspace.example.id
+  workspace_id = data.seca_workspace.example.name
 }
 
 resource "seca_image" "example" {
@@ -24,14 +24,14 @@ resource "seca_image" "example" {
   extensions  = []
 }
 
+output "image_id" {
+  value = seca_image.example.id
+}
 output "image_tenant" {
   value = seca_image.example.tenant
 }
 output "image_region" {
   value = seca_image.example.region
-}
-output "image_resource_provider" {
-  value = seca_image.example.resource_provider
 }
 output "image_created_at" {
   value = seca_image.example.created_at

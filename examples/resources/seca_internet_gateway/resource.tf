@@ -11,6 +11,9 @@ resource "seca_internet_gateway" "example" {
   extensions  = []
 }
 
+output "internet_gateway_id" {
+  value = seca_internet_gateway.example.id
+}
 output "internet_gateway_tenant" {
   value = seca_internet_gateway.example.tenant
 }
