@@ -60,13 +60,6 @@ func fromTimePtr(t *time.Time) types.String {
 	return fromTime(*t)
 }
 
-func fromIntPtr(n *int) types.Int64 {
-	if n == nil {
-		return types.Int64Null()
-	}
-	return types.Int64Value(int64(*n))
-}
-
 func fromRefPtr(ref *sdk.Reference) types.String {
 	if ref == nil {
 		return types.StringNull()
