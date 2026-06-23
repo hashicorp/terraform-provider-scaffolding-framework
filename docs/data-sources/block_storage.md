@@ -19,9 +19,12 @@ data "seca_workspace" "example" {
 
 data "seca_block_storage" "example" {
   name         = "block-storage-1"
-  workspace_id = data.seca_workspace.example.id
+  workspace_id = data.seca_workspace.example.name
 }
 
+output "block_storage_id" {
+  value = data.seca_block_storage.example.id
+}
 output "block_storage_tenant" {
   value = data.seca_block_storage.example.tenant
 }
@@ -30,9 +33,6 @@ output "block_storage_workspace_id" {
 }
 output "block_storage_region" {
   value = data.seca_block_storage.example.region
-}
-output "block_storage_resource_provider" {
-  value = data.seca_block_storage.example.resource_provider
 }
 output "block_storage_created_at" {
   value = data.seca_block_storage.example.created_at
@@ -83,10 +83,10 @@ output "block_storage_state" {
 - `created_at` (String)
 - `deleted_at` (String)
 - `extensions` (Map of String)
+- `id` (String) The ID of this resource.
 - `labels` (Map of String)
 - `last_modified_at` (String)
 - `region` (String)
-- `resource_provider` (String)
 - `size_gb` (Number)
 - `sku_id` (String)
 - `source_image_id` (String)

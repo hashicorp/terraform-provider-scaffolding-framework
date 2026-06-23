@@ -13,6 +13,9 @@ data "seca_nic" "example" {
   subnet_id    = data.seca_subnet.example.id
 }
 
+output "nic_id" {
+  value = data.seca_nic.example.id
+}
 output "nic_tenant" {
   value = data.seca_nic.example.tenant
 }

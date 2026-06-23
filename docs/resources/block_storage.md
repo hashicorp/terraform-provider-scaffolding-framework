@@ -23,7 +23,7 @@ data "seca_workspace" "example" {
 
 resource "seca_block_storage" "example" {
   name         = "block-storage-1"
-  workspace_id = data.seca_workspace.example.id
+  workspace_id = data.seca_workspace.example.name
 
   size_gb = 10
   sku_id  = data.seca_storage_sku.example.id
@@ -33,6 +33,9 @@ resource "seca_block_storage" "example" {
   extensions  = []
 }
 
+output "block_storage_id" {
+  value = seca_block_storage.example.id
+}
 output "block_storage_tenant" {
   value = seca_block_storage.example.tenant
 }
@@ -41,9 +44,6 @@ output "block_storage_workspace_id" {
 }
 output "block_storage_region" {
   value = seca_block_storage.example.region
-}
-output "block_storage_resource_provider" {
-  value = seca_block_storage.example.resource_provider
 }
 
 output "block_storage_sku_id" {
@@ -78,7 +78,7 @@ output "block_storage_source_image_id" {
 
 - `created_at` (String)
 - `deleted_at` (String)
+- `id` (String) The ID of this resource.
 - `last_modified_at` (String)
 - `region` (String)
-- `resource_provider` (String)
 - `tenant` (String)

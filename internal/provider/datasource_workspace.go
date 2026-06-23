@@ -32,13 +32,13 @@ func (d *WorkspaceDataSource) Metadata(_ context.Context, req datasource.Metadat
 }
 
 type WorkspaceDataSourceModel struct {
-	Name             types.String `tfsdk:"name"`
-	Tenant           types.String `tfsdk:"tenant"`
-	Region           types.String `tfsdk:"region"`
-	ResourceProvider types.String `tfsdk:"resource_provider"`
-	CreatedAt        types.String `tfsdk:"created_at"`
-	DeletedAt        types.String `tfsdk:"deleted_at"`
-	LastModifiedAt   types.String `tfsdk:"last_modified_at"`
+	Id             types.String `tfsdk:"id"`
+	Name           types.String `tfsdk:"name"`
+	Tenant         types.String `tfsdk:"tenant"`
+	Region         types.String `tfsdk:"region"`
+	CreatedAt      types.String `tfsdk:"created_at"`
+	DeletedAt      types.String `tfsdk:"deleted_at"`
+	LastModifiedAt types.String `tfsdk:"last_modified_at"`
 
 	Labels      types.Map `tfsdk:"labels"`
 	Annotations types.Map `tfsdk:"annotations"`
@@ -50,6 +50,9 @@ type WorkspaceDataSourceModel struct {
 func (d *WorkspaceDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = tfschema.Schema{
 		Attributes: map[string]tfschema.Attribute{
+			"id": tfschema.StringAttribute{
+				Computed: true,
+			},
 			"name": tfschema.StringAttribute{
 				Required: true,
 			},
@@ -57,9 +60,6 @@ func (d *WorkspaceDataSource) Schema(_ context.Context, _ datasource.SchemaReque
 				Computed: true,
 			},
 			"region": tfschema.StringAttribute{
-				Computed: true,
-			},
-			"resource_provider": tfschema.StringAttribute{
 				Computed: true,
 			},
 			"created_at": tfschema.StringAttribute{
@@ -144,11 +144,11 @@ func workspaceToDataSourceModel(ctx context.Context, workspace *sdk.Workspace) (
 	var diags diag.Diagnostics
 
 	model := WorkspaceDataSourceModel{}
+	model.Id = types.StringValue(workspace.Metadata.Ref)
 
 	model.Name = types.StringValue(workspace.Metadata.Name)
 	model.Tenant = types.StringValue(workspace.Metadata.Tenant)
 	model.Region = types.StringValue(workspace.Metadata.Region)
-	model.ResourceProvider = types.StringValue(workspace.Metadata.Provider)
 	model.CreatedAt = fromTime(workspace.Metadata.CreatedAt)
 	model.DeletedAt = fromTimePtr(workspace.Metadata.DeletedAt)
 	model.LastModifiedAt = fromTime(workspace.Metadata.LastModifiedAt)

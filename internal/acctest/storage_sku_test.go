@@ -24,7 +24,6 @@ func TestAccStorageSku(t *testing.T) {
 					resource.TestCheckResourceAttr("data.seca_storage_sku.test", "name", "RD500"),
 					resource.TestCheckResourceAttr("data.seca_storage_sku.test", "tenant", "seca"),
 					resource.TestCheckResourceAttr("data.seca_storage_sku.test", "region", "region"),
-					resource.TestCheckResourceAttr("data.seca_storage_sku.test", "resource_provider", "seca.storage/v1"),
 					resource.TestCheckResourceAttrSet("data.seca_storage_sku.test", "iops"),
 					resource.TestCheckResourceAttrSet("data.seca_storage_sku.test", "type"),
 					resource.TestCheckResourceAttrSet("data.seca_storage_sku.test", "min_volume_size"),

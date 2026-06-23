@@ -2,6 +2,9 @@ data "seca_network_sku" "example" {
   name = "N10K"
 }
 
+output "network_sku_id" {
+  value = data.seca_network_sku.example.id
+}
 output "network_sku_tenant" {
   value = data.seca_network_sku.example.tenant
 }

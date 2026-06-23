@@ -17,8 +17,8 @@ data "seca_region" "example" {
   name = "region-1"
 }
 
-output "region_resource_provider" {
-  value = data.seca_region.example.resource_provider
+output "region_id" {
+  value = data.seca_region.example.id
 }
 output "region_created_at" {
   value = data.seca_region.example.created_at
@@ -50,9 +50,9 @@ output "region_providers" {
 - `available_zones` (List of String)
 - `created_at` (String)
 - `deleted_at` (String)
+- `id` (String) The ID of this resource.
 - `last_modified_at` (String)
 - `providers` (Attributes List) (see [below for nested schema](#nestedatt--providers))
-- `resource_provider` (String)
 
 <a id="nestedatt--providers"></a>
 ### Nested Schema for `providers`

@@ -41,13 +41,13 @@ func (resource *ImageResource) Metadata(_ context.Context, req resource.Metadata
 }
 
 type ImageModel struct {
-	Name             types.String `tfsdk:"name"`
-	Tenant           types.String `tfsdk:"tenant"`
-	Region           types.String `tfsdk:"region"`
-	ResourceProvider types.String `tfsdk:"resource_provider"`
-	CreatedAt        types.String `tfsdk:"created_at"`
-	DeletedAt        types.String `tfsdk:"deleted_at"`
-	LastModifiedAt   types.String `tfsdk:"last_modified_at"`
+	Id             types.String `tfsdk:"id"`
+	Name           types.String `tfsdk:"name"`
+	Tenant         types.String `tfsdk:"tenant"`
+	Region         types.String `tfsdk:"region"`
+	CreatedAt      types.String `tfsdk:"created_at"`
+	DeletedAt      types.String `tfsdk:"deleted_at"`
+	LastModifiedAt types.String `tfsdk:"last_modified_at"`
 
 	Labels      types.Map `tfsdk:"labels"`
 	Annotations types.Map `tfsdk:"annotations"`
@@ -62,6 +62,9 @@ type ImageModel struct {
 func (resource *ImageResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = tfschema.Schema{
 		Attributes: map[string]tfschema.Attribute{
+			"id": tfschema.StringAttribute{
+				Computed: true,
+			},
 			"name": tfschema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
@@ -72,9 +75,6 @@ func (resource *ImageResource) Schema(_ context.Context, _ resource.SchemaReques
 				Computed: true,
 			},
 			"region": tfschema.StringAttribute{
-				Computed: true,
-			},
-			"resource_provider": tfschema.StringAttribute{
 				Computed: true,
 			},
 			"created_at": tfschema.StringAttribute{
@@ -333,11 +333,11 @@ func imageToResourceModel(ctx context.Context, image *sdk.Image) (ImageModel, di
 	var diags diag.Diagnostics
 
 	model := ImageModel{}
+	model.Id = types.StringValue(image.Metadata.Ref)
 
 	model.Name = types.StringValue(image.Metadata.Name)
 	model.Tenant = types.StringValue(image.Metadata.Tenant)
 	model.Region = types.StringValue(image.Metadata.Region)
-	model.ResourceProvider = types.StringValue(image.Metadata.Provider)
 	model.CreatedAt = fromTime(image.Metadata.CreatedAt)
 	model.DeletedAt = fromTimePtr(image.Metadata.DeletedAt)
 	model.LastModifiedAt = fromTime(image.Metadata.LastModifiedAt)

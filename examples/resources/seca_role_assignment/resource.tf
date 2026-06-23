@@ -16,6 +16,9 @@ resource "seca_role_assignment" "example" {
   extensions  = []
 }
 
+output "role_assignment_id" {
+  value = seca_role_assignment.example.id
+}
 output "role_assignment_tenant" {
   value = seca_role_assignment.example.tenant
 }

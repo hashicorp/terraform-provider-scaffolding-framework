@@ -2,6 +2,9 @@ data "seca_role_assignment" "example" {
   name = "role-assignment-1"
 }
 
+output "role_assignment_id" {
+  value = data.seca_role_assignment.example.id
+}
 output "role_assignment_tenant" {
   value = data.seca_role_assignment.example.tenant
 }

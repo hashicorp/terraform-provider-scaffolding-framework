@@ -17,14 +17,14 @@ data "seca_storage_sku" "example" {
   name = "RD500"
 }
 
+output "storage_sku_id" {
+  value = data.seca_storage_sku.example.id
+}
 output "storage_sku_tenant" {
   value = data.seca_storage_sku.example.tenant
 }
 output "storage_sku_region" {
   value = data.seca_storage_sku.example.region
-}
-output "storage_sku_resource_provider" {
-  value = data.seca_storage_sku.example.resource_provider
 }
 
 output "storage_sku_labels" {
@@ -59,10 +59,10 @@ output "storage_sku_min_volume_size" {
 
 - `annotations` (Map of String)
 - `extensions` (Map of String)
+- `id` (String) The ID of this resource.
 - `iops` (Number)
 - `labels` (Map of String)
 - `min_volume_size` (Number)
 - `region` (String)
-- `resource_provider` (String)
 - `tenant` (String)
 - `type` (String)

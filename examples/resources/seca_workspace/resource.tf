@@ -6,14 +6,14 @@ resource "seca_workspace" "example" {
   extensions  = []
 }
 
+output "workspace_id" {
+  value = seca_workspace.example.id
+}
 output "workspace_tenant" {
   value = seca_workspace.example.tenant
 }
 output "workspace_resource_region" {
   value = seca_workspace.example.region
-}
-output "workspace_resource_provider" {
-  value = seca_workspace.example.resource_provider
 }
 output "workspace_resource_created_at" {
   value = seca_workspace.example.created_at

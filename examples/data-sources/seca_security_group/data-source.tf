@@ -7,6 +7,9 @@ data "seca_security_group" "example" {
   workspace_id = data.seca_workspace.example.id
 }
 
+output "security_group_id" {
+  value = data.seca_security_group.example.id
+}
 output "security_group_tenant" {
   value = data.seca_security_group.example.tenant
 }

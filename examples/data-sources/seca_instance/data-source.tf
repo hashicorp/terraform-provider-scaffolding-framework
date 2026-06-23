@@ -7,6 +7,9 @@ data "seca_instance" "example" {
   workspace_id = data.seca_workspace.example.id
 }
 
+output "instance_id" {
+  value = data.seca_instance.example.id
+}
 output "instance_tenant" {
   value = data.seca_instance.example.tenant
 }

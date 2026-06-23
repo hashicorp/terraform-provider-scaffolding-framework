@@ -32,10 +32,10 @@ func (d *StorageSkuDataSource) Metadata(_ context.Context, req datasource.Metada
 }
 
 type StorageSkuDataSourceModel struct {
-	Name             types.String `tfsdk:"name"`
-	Tenant           types.String `tfsdk:"tenant"`
-	Region           types.String `tfsdk:"region"`
-	ResourceProvider types.String `tfsdk:"resource_provider"`
+	Id     types.String `tfsdk:"id"`
+	Name   types.String `tfsdk:"name"`
+	Tenant types.String `tfsdk:"tenant"`
+	Region types.String `tfsdk:"region"`
 
 	Labels      types.Map `tfsdk:"labels"`
 	Annotations types.Map `tfsdk:"annotations"`
@@ -49,6 +49,9 @@ type StorageSkuDataSourceModel struct {
 func (d *StorageSkuDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = tfschema.Schema{
 		Attributes: map[string]tfschema.Attribute{
+			"id": tfschema.StringAttribute{
+				Computed: true,
+			},
 			"name": tfschema.StringAttribute{
 				Required: true,
 			},
@@ -56,9 +59,6 @@ func (d *StorageSkuDataSource) Schema(_ context.Context, _ datasource.SchemaRequ
 				Computed: true,
 			},
 			"region": tfschema.StringAttribute{
-				Computed: true,
-			},
-			"resource_provider": tfschema.StringAttribute{
 				Computed: true,
 			},
 			"labels": tfschema.MapAttribute{
@@ -140,11 +140,11 @@ func storageSkuToDataSourceModel(ctx context.Context, sku *sdk.StorageSku) (Stor
 	var diags diag.Diagnostics
 
 	model := StorageSkuDataSourceModel{}
+	model.Id = types.StringValue(sku.Metadata.Ref)
 
 	model.Name = types.StringValue(sku.Metadata.Name)
 	model.Tenant = types.StringValue(sku.Metadata.Tenant)
 	model.Region = types.StringValue(sku.Metadata.Region)
-	model.ResourceProvider = types.StringValue(sku.Metadata.Provider)
 
 	labels, d := fromStringMap(ctx, sku.Labels)
 	diags.Append(d...)

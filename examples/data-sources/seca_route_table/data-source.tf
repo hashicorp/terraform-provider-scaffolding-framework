@@ -13,6 +13,9 @@ data "seca_route_table" "example" {
   network_id   = data.seca_network.example.id
 }
 
+output "route_table_id" {
+  value = data.seca_route_table.example.id
+}
 output "route_table_tenant" {
   value = data.seca_route_table.example.tenant
 }

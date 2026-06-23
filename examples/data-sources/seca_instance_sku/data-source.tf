@@ -2,6 +2,9 @@ data "seca_instance_sku" "example" {
   name = "DXS"
 }
 
+output "instance_sku_id" {
+  value = data.seca_instance_sku.example.id
+}
 output "instance_sku_tenant" {
   value = data.seca_instance_sku.example.tenant
 }

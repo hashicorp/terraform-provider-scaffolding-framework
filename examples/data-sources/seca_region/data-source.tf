@@ -2,8 +2,8 @@ data "seca_region" "example" {
   name = "region-1"
 }
 
-output "region_resource_provider" {
-  value = data.seca_region.example.resource_provider
+output "region_id" {
+  value = data.seca_region.example.id
 }
 output "region_created_at" {
   value = data.seca_region.example.created_at

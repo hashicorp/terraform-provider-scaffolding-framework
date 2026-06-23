@@ -7,6 +7,9 @@ data "seca_internet_gateway" "example" {
   workspace_id = data.seca_workspace.example.id
 }
 
+output "internet_gateway_id" {
+  value = data.seca_internet_gateway.example.id
+}
 output "internet_gateway_tenant" {
   value = data.seca_internet_gateway.example.tenant
 }

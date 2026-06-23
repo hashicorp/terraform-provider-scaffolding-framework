@@ -4,9 +4,12 @@ data "seca_workspace" "example" {
 
 data "seca_block_storage" "example" {
   name         = "block-storage-1"
-  workspace_id = data.seca_workspace.example.id
+  workspace_id = data.seca_workspace.example.name
 }
 
+output "block_storage_id" {
+  value = data.seca_block_storage.example.id
+}
 output "block_storage_tenant" {
   value = data.seca_block_storage.example.tenant
 }
@@ -15,9 +18,6 @@ output "block_storage_workspace_id" {
 }
 output "block_storage_region" {
   value = data.seca_block_storage.example.region
-}
-output "block_storage_resource_provider" {
-  value = data.seca_block_storage.example.resource_provider
 }
 output "block_storage_created_at" {
   value = data.seca_block_storage.example.created_at

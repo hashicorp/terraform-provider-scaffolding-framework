@@ -32,6 +32,9 @@ resource "seca_security_group" "example" {
   extensions  = []
 }
 
+output "security_group_id" {
+  value = seca_security_group.example.id
+}
 output "security_group_tenant" {
   value = seca_security_group.example.tenant
 }

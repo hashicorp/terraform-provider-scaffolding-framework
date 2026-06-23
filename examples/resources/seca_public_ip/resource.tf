@@ -13,6 +13,9 @@ resource "seca_public_ip" "example" {
   extensions  = []
 }
 
+output "public_ip_id" {
+  value = seca_public_ip.example.id
+}
 output "public_ip_tenant" {
   value = seca_public_ip.example.tenant
 }

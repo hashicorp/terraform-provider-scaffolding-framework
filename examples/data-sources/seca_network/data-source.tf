@@ -7,6 +7,9 @@ data "seca_network" "example" {
   workspace_id = data.seca_workspace.example.id
 }
 
+output "network_id" {
+  value = data.seca_network.example.id
+}
 output "network_tenant" {
   value = data.seca_network.example.tenant
 }

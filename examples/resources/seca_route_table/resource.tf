@@ -29,6 +29,9 @@ resource "seca_route_table" "example" {
   extensions  = []
 }
 
+output "route_table_id" {
+  value = seca_route_table.example.id
+}
 output "route_table_tenant" {
   value = seca_route_table.example.tenant
 }

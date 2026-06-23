@@ -20,6 +20,9 @@ resource "seca_network" "example" {
   extensions  = []
 }
 
+output "network_id" {
+  value = seca_network.example.id
+}
 output "network_tenant" {
   value = seca_network.example.tenant
 }
