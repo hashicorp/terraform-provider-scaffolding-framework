@@ -58,9 +58,6 @@ output "image_initializer" {
 output "image_boot" {
   value = data.seca_image.example.boot
 }
-output "image_size_mb" {
-  value = data.seca_image.example.size_mb
-}
 
 output "image_state" {
   value = data.seca_image.example.state
@@ -88,6 +85,5 @@ output "image_state" {
 - `last_modified_at` (String)
 - `region` (String)
 - `resource_provider` (String)
-- `size_mb` (Number)
 - `state` (String)
 - `tenant` (String)

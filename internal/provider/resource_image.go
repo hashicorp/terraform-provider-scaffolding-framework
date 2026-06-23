@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	tfschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	sdk "github.com/eu-sovereign-cloud/go-sdk/pkg/spec/schema"
@@ -55,7 +57,6 @@ type ImageModel struct {
 	CpuArchitecture types.String `tfsdk:"cpu_architecture"`
 	Initializer     types.String `tfsdk:"initializer"`
 	Boot            types.String `tfsdk:"boot"`
-	SizeMB          types.Int64  `tfsdk:"size_mb"`
 }
 
 func (resource *ImageResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -63,6 +64,9 @@ func (resource *ImageResource) Schema(_ context.Context, _ resource.SchemaReques
 		Attributes: map[string]tfschema.Attribute{
 			"name": tfschema.StringAttribute{
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"tenant": tfschema.StringAttribute{
 				Computed: true,
@@ -106,9 +110,6 @@ func (resource *ImageResource) Schema(_ context.Context, _ resource.SchemaReques
 			},
 			"boot": tfschema.StringAttribute{
 				Optional: true,
-				Computed: true,
-			},
-			"size_mb": tfschema.Int64Attribute{
 				Computed: true,
 			},
 		},
@@ -357,7 +358,6 @@ func imageToResourceModel(ctx context.Context, image *sdk.Image) (ImageModel, di
 	model.CpuArchitecture = types.StringValue(string(image.Spec.CpuArchitecture))
 	model.Initializer = types.StringValue(string(image.Spec.Initializer))
 	model.Boot = types.StringValue(string(image.Spec.Boot))
-	model.SizeMB = fromIntPtr(image.Status.SizeMB)
 
 	return model, diags
 }

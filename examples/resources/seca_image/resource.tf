@@ -55,6 +55,3 @@ output "image_initializer" {
 output "image_boot" {
   value = seca_image.example.boot
 }
-output "image_size_mb" {
-  value = seca_image.example.size_mb
-}

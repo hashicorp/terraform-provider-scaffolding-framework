@@ -48,7 +48,6 @@ type ImageDataSourceModel struct {
 	CpuArchitecture types.String `tfsdk:"cpu_architecture"`
 	Initializer     types.String `tfsdk:"initializer"`
 	Boot            types.String `tfsdk:"boot"`
-	SizeMB          types.Int64  `tfsdk:"size_mb"`
 
 	State types.String `tfsdk:"state"`
 }
@@ -99,9 +98,6 @@ func (d *ImageDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, 
 				Computed: true,
 			},
 			"boot": tfschema.StringAttribute{
-				Computed: true,
-			},
-			"size_mb": tfschema.Int64Attribute{
 				Computed: true,
 			},
 			"state": tfschema.StringAttribute{
@@ -190,7 +186,6 @@ func imageToDataSourceModel(ctx context.Context, image *sdk.Image) (ImageDataSou
 	model.CpuArchitecture = types.StringValue(string(image.Spec.CpuArchitecture))
 	model.Initializer = types.StringValue(string(image.Spec.Initializer))
 	model.Boot = types.StringValue(string(image.Spec.Boot))
-	model.SizeMB = fromIntPtr(image.Status.SizeMB)
 
 	model.State = types.StringValue(string(image.Status.State))
 

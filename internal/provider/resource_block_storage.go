@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	tfschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	sdk "github.com/eu-sovereign-cloud/go-sdk/pkg/spec/schema"
@@ -62,9 +64,15 @@ func (resource *BlockStorageResource) Schema(_ context.Context, _ resource.Schem
 		Attributes: map[string]tfschema.Attribute{
 			"name": tfschema.StringAttribute{
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"workspace_id": tfschema.StringAttribute{
 				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"tenant": tfschema.StringAttribute{
 				Computed: true,
