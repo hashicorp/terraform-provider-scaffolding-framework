@@ -2,11 +2,20 @@ data "seca_role_assignment" "example" {
   name = "role-assignment-1"
 }
 
-output "role_assignment_provider" {
-  value = data.seca_role_assignment.example.provider
+output "role_assignment_tenant" {
+  value = data.seca_role_assignment.example.tenant
 }
-output "role_assignment_tenant_id" {
-  value = data.seca_role_assignment.example.tenant_id
+output "role_assignment_resource_provider" {
+  value = data.seca_role_assignment.example.resource_provider
+}
+output "role_assignment_created_at" {
+  value = data.seca_role_assignment.example.created_at
+}
+output "role_assignment_deleted_at" {
+  value = data.seca_role_assignment.example.deleted_at
+}
+output "role_assignment_last_modified_at" {
+  value = data.seca_role_assignment.example.last_modified_at
 }
 
 output "role_assignment_labels" {

@@ -13,14 +13,26 @@ data "seca_nic" "example" {
   subnet_id    = data.seca_subnet.example.id
 }
 
-output "nic_provider" {
-  value = data.seca_nic.example.provider
-}
-output "nic_tenant_id" {
-  value = data.seca_nic.example.tenant_id
+output "nic_tenant" {
+  value = data.seca_nic.example.tenant
 }
 output "nic_workspace_id" {
   value = data.seca_nic.example.workspace_id
+}
+output "nic_region" {
+  value = data.seca_nic.example.region
+}
+output "nic_resource_provider" {
+  value = data.seca_nic.example.resource_provider
+}
+output "nic_created_at" {
+  value = data.seca_nic.example.created_at
+}
+output "nic_deleted_at" {
+  value = data.seca_nic.example.deleted_at
+}
+output "nic_last_modified_at" {
+  value = data.seca_nic.example.last_modified_at
 }
 
 output "nic_labels" {

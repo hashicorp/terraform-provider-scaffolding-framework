@@ -7,14 +7,26 @@ data "seca_security_group" "example" {
   workspace_id = data.seca_workspace.example.id
 }
 
-output "security_group_provider" {
-  value = data.seca_security_group.example.provider
-}
-output "security_group_tenant_id" {
-  value = data.seca_security_group.example.tenant_id
+output "security_group_tenant" {
+  value = data.seca_security_group.example.tenant
 }
 output "security_group_workspace_id" {
   value = data.seca_security_group.example.workspace_id
+}
+output "security_group_region" {
+  value = data.seca_security_group.example.region
+}
+output "security_group_resource_provider" {
+  value = data.seca_security_group.example.resource_provider
+}
+output "security_group_created_at" {
+  value = data.seca_security_group.example.created_at
+}
+output "security_group_deleted_at" {
+  value = data.seca_security_group.example.deleted_at
+}
+output "security_group_last_modified_at" {
+  value = data.seca_security_group.example.last_modified_at
 }
 
 output "security_group_labels" {

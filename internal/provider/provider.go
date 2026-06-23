@@ -3,8 +3,6 @@ package provider
 import (
 	"context"
 
-	"github.com/eu-sovereign-cloud/terraform-provider-seca/internal/sdk"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -13,16 +11,26 @@ import (
 )
 
 type SecaProvider struct {
-	version string
+	Version string
 }
 
 type SecaProviderModel struct {
-	Token     types.String        `tfsdk:"token"`
-	Region    types.String        `tfsdk:"region"`
-	Providers *SecaProvidersModel `tfsdk:"providers"`
+	Token  types.String `tfsdk:"token"`
+	Tenant types.String `tfsdk:"tenant"`
+	Region types.String `tfsdk:"region"`
+
+	Retry *SecaRetryModel `tfsdk:"retry"`
+
+	GlobalProviders *SecaGlobalProvidersModel `tfsdk:"global_providers"`
 }
 
-type SecaProvidersModel struct {
+type SecaRetryModel struct {
+	Delay       types.Number `tfsdk:"delay"`
+	Interval    types.Number `tfsdk:"interval"`
+	MaxAttempts types.Number `tfsdk:"max_attempts"`
+}
+
+type SecaGlobalProvidersModel struct {
 	RegionV1        types.String `tfsdk:"region_v1"`
 	AuthorizationV1 types.String `tfsdk:"authorization_v1"`
 }
@@ -30,14 +38,14 @@ type SecaProvidersModel struct {
 func New(version string) func() provider.Provider {
 	return func() provider.Provider {
 		return &SecaProvider{
-			version: version,
+			Version: version,
 		}
 	}
 }
 
 func (p *SecaProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
 	resp.TypeName = "seca"
-	resp.Version = p.version
+	resp.Version = p.Version
 }
 
 func (p *SecaProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
@@ -46,10 +54,27 @@ func (p *SecaProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp 
 			"token": schema.StringAttribute{
 				Required: true,
 			},
+			"tenant": schema.StringAttribute{
+				Required: true,
+			},
 			"region": schema.StringAttribute{
 				Required: true,
 			},
-			"providers": schema.SingleNestedAttribute{
+			"retry": schema.SingleNestedAttribute{
+				Optional: true,
+				Attributes: map[string]schema.Attribute{
+					"delay": schema.NumberAttribute{
+						Optional: true,
+					},
+					"interval": schema.NumberAttribute{
+						Optional: true,
+					},
+					"max_attempts": schema.NumberAttribute{
+						Optional: true,
+					},
+				},
+			},
+			"global_providers": schema.SingleNestedAttribute{
 				Required: true,
 				Attributes: map[string]schema.Attribute{
 					"region_v1": schema.StringAttribute{
@@ -71,21 +96,37 @@ func (p *SecaProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
-	config := &sdk.Config{
+	config := &clientConfig{
 		Token:  model.Token.ValueString(),
+		Tenant: model.Tenant.ValueString(),
 		Region: model.Region.ValueString(),
+
+		RetryDelay:       defaultRetryDelay,
+		RetryInterval:    defaultRetryInterval,
+		RetryMaxAttempts: defaultRetryMaxAttempts,
 	}
 
-	if model.Providers != nil {
-		config.GlobalProviders = &sdk.ConfigGlobalProviders{
-			RegionV1:        model.Providers.RegionV1.ValueString(),
-			AuthorizationV1: model.Providers.AuthorizationV1.ValueString(),
+	if model.Retry != nil {
+		if !model.Retry.Delay.IsNull() {
+			config.RetryDelay = numberToDuration(model.Retry.Delay)
+		}
+		if !model.Retry.Interval.IsNull() {
+			config.RetryInterval = numberToDuration(model.Retry.Interval)
+		}
+		if !model.Retry.MaxAttempts.IsNull() {
+			config.RetryMaxAttempts = numberToInt(model.Retry.MaxAttempts)
 		}
 	}
 
-	clients, err := sdk.InitClients(ctx, config)
+	config.GlobalProviders = &clientConfigGlobalProviders{
+		RegionV1:        model.GlobalProviders.RegionV1.ValueString(),
+		AuthorizationV1: model.GlobalProviders.AuthorizationV1.ValueString(),
+	}
+
+	clients, err := initClients(ctx, config)
 	if err != nil {
-		resp.Diagnostics.AddError("Unable to initialize SDK client",
+		resp.Diagnostics.AddError(
+			"Unable to initialize SDK client",
 			"Error: "+err.Error(),
 		)
 		return
@@ -96,9 +137,19 @@ func (p *SecaProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 }
 
 func (p *SecaProvider) Resources(_ context.Context) []func() resource.Resource {
-	return []func() resource.Resource{}
+	return []func() resource.Resource{
+		newWorkspaceResource,
+		newImageResource,
+		newBlockStorageResource,
+	}
 }
 
 func (p *SecaProvider) DataSources(_ context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{}
+	return []func() datasource.DataSource{
+		newWorkspaceDataSource,
+		newRegionDataSource,
+		newImageDataSource,
+		newBlockStorageDataSource,
+		newStorageSkuDataSource,
+	}
 }
