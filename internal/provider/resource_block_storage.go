@@ -305,6 +305,29 @@ func (resource *BlockStorageResource) Delete(ctx context.Context, req resource.D
 		)
 		return
 	}
+
+	// Wait until it is deleted
+
+	wref := secapi.WorkspaceReference{
+		Tenant:    secapi.TenantID(block.Metadata.Tenant),
+		Workspace: secapi.WorkspaceID(block.Metadata.Workspace),
+		Name:      block.Metadata.Name,
+	}
+
+	config := secapi.ResourceObserverConfig{
+		Delay:       resource.retryDelay,
+		Interval:    resource.retryInterval,
+		MaxAttempts: resource.retryMaxAttempts,
+	}
+
+	err = resource.client.StorageV1.WatchBlockStorageUntilDeleted(ctx, wref, config)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading block storage",
+			"An error was encountered while waiting for the block storage to become deleted.\nError: "+err.Error(),
+		)
+		return
+	}
 }
 
 func blockStorageFromModel(tenant string, data BlockStorageModel) *sdk.BlockStorage {

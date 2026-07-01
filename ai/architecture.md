@@ -68,10 +68,10 @@ Schema()     → declares all attributes (see provider-conventions.md)
 Create()     → reads Plan → calls CreateOrUpdateXxx() → polls GetXxxUntilState() → writes State
 Read()       → reads State → calls GetXxx() → writes State
 Update()     → reads Plan → calls CreateOrUpdateXxx() → polls GetXxxUntilState() → writes State
-Delete()     → reads State → calls DeleteXxx()
+Delete()     → reads State → calls DeleteXxx() → polls WatchXxxUntilDeleted()
 ```
 
-Delete does **not** poll for deletion completion (see [known-issues.md](known-issues.md)).
+Delete polls for deletion completion via `WatchXxxUntilDeleted()`, using the same retry config as Create/Update, before returning.
 
 ## SDK Layering
 

@@ -28,19 +28,9 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 ---
 
-### 3. Delete Does Not Poll for Completion
-
-**Impact:** Terraform considers a resource deleted as soon as `DeleteXxx()` returns without error, but the resource may still be deleting on the API side. A subsequent create of a same-named resource may conflict.
-
-**All resources affected:** `seca_workspace`, `seca_image`, `seca_block_storage`
-
-**Correct behavior:** Poll `GetXxxUntilState()` with a "deleted" terminal state, or poll until a 404 is returned.
-
----
-
 ## Design Gaps
 
-### 4. Duplicated Mapping Logic Between Resource and Data Source
+### 3. Duplicated Mapping Logic Between Resource and Data Source
 
 **Impact:** Every resource has both `xxxToResourceModel` and `xxxToDataSourceModel` with nearly identical code. The only difference is that data source models include `state` from status and use `Computed` for maps.
 
@@ -50,7 +40,7 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 ---
 
-### 5. No `UseStateForUnknown()` on Computed Fields
+### 4. No `UseStateForUnknown()` on Computed Fields
 
 **Impact:** On every plan, all Computed fields (`tenant`, `region`, `created_at`, etc.) show as `(known after apply)` even when no change is expected. This produces noisy plans and erodes user trust.
 
@@ -58,7 +48,7 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 ---
 
-### 6. Retry Config Is Coarse-Grained
+### 5. Retry Config Is Coarse-Grained
 
 **Impact:** All resources in a provider instance share the same retry config. A slow-provisioning instance and a fast-provisioning workspace cannot have different polling configs.
 
@@ -68,7 +58,7 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 ---
 
-### 7. No Structured Logging (`tflog`)
+### 6. No Structured Logging (`tflog`)
 
 **Impact:** No debug output when `TF_LOG=DEBUG` is set. Debugging API interactions requires network tracing.
 
@@ -76,7 +66,7 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 ---
 
-### 8. `StorageSkuDataSource` Missing `created_at` / `deleted_at` / `last_modified_at`
+### 7. `StorageSkuDataSource` Missing `created_at` / `deleted_at` / `last_modified_at`
 
 **Location:** `internal/provider/datasource_storage_sku.go`
 
@@ -86,7 +76,7 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 ---
 
-### 9. Acceptance Test Cluster Is Hard-Coded
+### 8. Acceptance Test Cluster Is Hard-Coded
 
 **Location:** `internal/acctest/provider_test.go`
 
@@ -96,7 +86,7 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 ---
 
-### 10. No Update Acceptance Test Steps
+### 9. No Update Acceptance Test Steps
 
 **Impact:** No acceptance test verifies that updating a resource's mutable fields (e.g., `size_gb` on block storage, `labels`) is reflected correctly.
 
@@ -104,6 +94,6 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 ---
 
-### 11. No `CheckDestroy` in Acceptance Tests
+### 10. No `CheckDestroy` in Acceptance Tests
 
 **Impact:** Acceptance tests do not verify that resources are actually deleted from the API after `terraform destroy`. The framework's automatic cleanup may succeed at the provider level while leaving orphaned resources on the API.

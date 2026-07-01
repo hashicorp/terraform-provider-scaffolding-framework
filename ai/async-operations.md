@@ -77,7 +77,7 @@ Always use the **result from the initial API call** to populate the reference (e
 
 ## Delete Operations
 
-`Delete()` does **not** poll. It calls `DeleteXxx()` and returns immediately. This is a known gap (see [known-issues.md](known-issues.md)). The API is expected to handle deletion asynchronously, and subsequent `Read()` calls will detect when the resource is gone.
+`Delete()` submits the deletion with `DeleteXxx()`, then polls `WatchXxxUntilDeleted(ctx, ref, config)` — using the same reference and retry config (`retryDelay`, `retryInterval`, `retryMaxAttempts`) as the Create/Update polling — before returning. This ensures the resource is fully gone on the API side, so a subsequent create of a same-named resource does not conflict. On a polling error, surface it with the read verb: `resp.Diagnostics.AddError("Error reading Xxx", "...while waiting for the Xxx to become deleted.\nError: "+err.Error())`.
 
 ## What NOT to Do
 

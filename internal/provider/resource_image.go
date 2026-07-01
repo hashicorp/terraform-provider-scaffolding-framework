@@ -300,6 +300,28 @@ func (resource *ImageResource) Delete(ctx context.Context, req resource.DeleteRe
 		)
 		return
 	}
+
+	// Wait until it is deleted
+
+	tref := secapi.TenantReference{
+		Tenant: secapi.TenantID(image.Metadata.Tenant),
+		Name:   image.Metadata.Name,
+	}
+
+	config := secapi.ResourceObserverConfig{
+		Delay:       resource.retryDelay,
+		Interval:    resource.retryInterval,
+		MaxAttempts: resource.retryMaxAttempts,
+	}
+
+	err = resource.client.StorageV1.WatchImageUntilDeleted(ctx, tref, config)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading image",
+			"An error was encountered while waiting for the image to become deleted.\nError: "+err.Error(),
+		)
+		return
+	}
 }
 
 func imageFromModel(tenant string, data ImageModel) *sdk.Image {

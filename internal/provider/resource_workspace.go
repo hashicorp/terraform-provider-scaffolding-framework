@@ -297,6 +297,28 @@ func (resource *WorkspaceResource) Delete(ctx context.Context, req resource.Dele
 		)
 		return
 	}
+
+	// Wait until it is deleted
+
+	tref := secapi.TenantReference{
+		Tenant: secapi.TenantID(workspace.Metadata.Tenant),
+		Name:   workspace.Metadata.Name,
+	}
+
+	config := secapi.ResourceObserverConfig{
+		Delay:       resource.retryDelay,
+		Interval:    resource.retryInterval,
+		MaxAttempts: resource.retryMaxAttempts,
+	}
+
+	err = resource.client.WorkspaceV1.WatchWorkspaceUntilDeleted(ctx, tref, config)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading workspace",
+			"An error was encountered while waiting for the workspace to become deleted.\nError: "+err.Error(),
+		)
+		return
+	}
 }
 
 func workspaceToResourceModel(ctx context.Context, workspace *sdk.Workspace) (WorkspaceModel, diag.Diagnostics) {
