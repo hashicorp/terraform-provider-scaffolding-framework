@@ -50,6 +50,12 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 ---
 
-### 6. No `CheckDestroy` in Acceptance Tests
+### 6. No `CheckDestroy` in Acceptance Tests — RESOLVED
 
-**Impact:** Acceptance tests do not verify that resources are actually deleted from the API after `terraform destroy`. The framework's automatic cleanup may succeed at the provider level while leaving orphaned resources on the API.
+**Resolution:** Each acceptance test now sets `CheckDestroy` on its `resource.TestCase`. The helper builds an SDK regional client (`testAccRegionalClient` in `provider_test.go`, sharing credentials/endpoints with the provider config), iterates the destroyed resources of its type in the Terraform state, and calls the corresponding `Get<Resource>` SDK method. It asserts every resource returns `secapi.ErrResourceNotFound`; any resource still present (or any other error) fails the test.
+
+- `testAccCheckWorkspaceDestroy` — `WorkspaceV1.GetWorkspace` (tenant-scoped)
+- `testAccCheckBlockStorageDestroy` — `StorageV1.GetBlockStorage` (workspace-scoped)
+- `testAccCheckImageDestroy` — `StorageV1.GetImage` (tenant-scoped)
+
+**When adding a new resource:** add a matching `testAccCheck<Resource>Destroy` function and wire it into the resource's `TestCase`.
