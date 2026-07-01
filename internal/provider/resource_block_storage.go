@@ -179,7 +179,7 @@ func (resource *BlockStorageResource) Create(ctx context.Context, req resource.C
 	block, err = resource.client.StorageV1.GetBlockStorageUntilState(ctx, wref, config)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating block storage",
+			"Error reading block storage",
 			"An error was encountered while waiting for the block storage to become active.\nError: "+err.Error(),
 		)
 		return
@@ -265,7 +265,7 @@ func (resource *BlockStorageResource) Update(ctx context.Context, req resource.U
 	block, err = resource.client.StorageV1.GetBlockStorageUntilState(ctx, wref, config)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error updating block storage",
+			"Error reading block storage",
 			"An error was encountered while waiting for the block storage to become active.\nError: "+err.Error(),
 		)
 		return

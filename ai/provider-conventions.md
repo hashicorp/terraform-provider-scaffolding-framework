@@ -141,8 +141,8 @@ Error messages follow a two-part convention:
 - **Summary**: `"Error <verb>ing <resource type>"` — e.g., `"Error creating block storage"`
 - **Detail**: `"An error was encountered when <verb>ing the <resource type>.\nError: " + err.Error()`
 
-For polling errors:
-- **Summary**: `"Error <verb>ing <resource type>"`
+For polling errors, the summary uses the **read** verb (the polling step is a `GetXxxUntilState` call, not the mutation), regardless of whether the caller is `Create()` or `Update()`:
+- **Summary**: `"Error reading <resource type>"` — e.g., `"Error reading block storage"`
 - **Detail**: `"An error was encountered while waiting for the <resource type> to become active.\nError: " + err.Error()`
 
 ## id Field Value

@@ -33,7 +33,7 @@ config := secapi.ResourceObserverUntilValueConfig[sdk.ResourceState]{
 // Step 4: Poll until active (or fail)
 result, err = resource.client.StorageV1.GetXxxUntilState(ctx, ref, config)
 if err != nil {
-    resp.Diagnostics.AddError("Error creating Xxx", "...\nError: "+err.Error())
+    resp.Diagnostics.AddError("Error reading Xxx", "...\nError: "+err.Error())
     return
 }
 ```

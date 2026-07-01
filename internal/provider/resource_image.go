@@ -177,7 +177,7 @@ func (resource *ImageResource) Create(ctx context.Context, req resource.CreateRe
 	image, err = resource.client.StorageV1.GetImageUntilState(ctx, tref, config)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating image",
+			"Error reading image",
 			"An error was encountered while waiting for the image to become active.\nError: "+err.Error(),
 		)
 		return
@@ -261,7 +261,7 @@ func (resource *ImageResource) Update(ctx context.Context, req resource.UpdateRe
 	image, err = resource.client.StorageV1.GetImageUntilState(ctx, tref, config)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error updating image",
+			"Error reading image",
 			"An error was encountered while waiting for the image to become active.\nError: "+err.Error(),
 		)
 		return

@@ -166,7 +166,7 @@ func (resource *WorkspaceResource) Create(ctx context.Context, req resource.Crea
 	workspace, err = resource.client.WorkspaceV1.GetWorkspaceUntilState(ctx, tref, config)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error updating workspace",
+			"Error reading workspace",
 			"An error was encountered while waiting for the workspace to become active.\nError: "+err.Error(),
 		)
 		return
@@ -258,7 +258,7 @@ func (resource *WorkspaceResource) Update(ctx context.Context, req resource.Upda
 	workspace, err = resource.client.WorkspaceV1.GetWorkspaceUntilState(ctx, tref, config)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error updating workspace",
+			"Error reading workspace",
 			"An error was encountered while waiting for the workspace to become active.\nError: "+err.Error(),
 		)
 		return

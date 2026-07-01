@@ -38,25 +38,9 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 ---
 
-### 4. Copy-Paste Error in `resource_workspace.go` Create()
-
-**Location:** `internal/provider/resource_workspace.go:168`
-
-**Problem:** The error diagnostic for the polling step in `Create()` says `"Error updating workspace"` instead of `"Error creating workspace"`.
-
-```go
-// Bug: says "updating" in a Create() method
-resp.Diagnostics.AddError(
-    "Error updating workspace",   // ← should be "Error creating workspace"
-    ...
-)
-```
-
----
-
 ## Design Gaps
 
-### 5. Duplicated Mapping Logic Between Resource and Data Source
+### 4. Duplicated Mapping Logic Between Resource and Data Source
 
 **Impact:** Every resource has both `xxxToResourceModel` and `xxxToDataSourceModel` with nearly identical code. The only difference is that data source models include `state` from status and use `Computed` for maps.
 
@@ -66,7 +50,7 @@ resp.Diagnostics.AddError(
 
 ---
 
-### 6. No `UseStateForUnknown()` on Computed Fields
+### 5. No `UseStateForUnknown()` on Computed Fields
 
 **Impact:** On every plan, all Computed fields (`tenant`, `region`, `created_at`, etc.) show as `(known after apply)` even when no change is expected. This produces noisy plans and erodes user trust.
 
@@ -74,7 +58,7 @@ resp.Diagnostics.AddError(
 
 ---
 
-### 7. Retry Config Is Coarse-Grained
+### 6. Retry Config Is Coarse-Grained
 
 **Impact:** All resources in a provider instance share the same retry config. A slow-provisioning instance and a fast-provisioning workspace cannot have different polling configs.
 
@@ -84,7 +68,7 @@ resp.Diagnostics.AddError(
 
 ---
 
-### 8. No Structured Logging (`tflog`)
+### 7. No Structured Logging (`tflog`)
 
 **Impact:** No debug output when `TF_LOG=DEBUG` is set. Debugging API interactions requires network tracing.
 
@@ -92,7 +76,7 @@ resp.Diagnostics.AddError(
 
 ---
 
-### 9. `StorageSkuDataSource` Missing `created_at` / `deleted_at` / `last_modified_at`
+### 8. `StorageSkuDataSource` Missing `created_at` / `deleted_at` / `last_modified_at`
 
 **Location:** `internal/provider/datasource_storage_sku.go`
 
@@ -102,7 +86,7 @@ resp.Diagnostics.AddError(
 
 ---
 
-### 10. Acceptance Test Cluster Is Hard-Coded
+### 9. Acceptance Test Cluster Is Hard-Coded
 
 **Location:** `internal/acctest/provider_test.go`
 
@@ -112,7 +96,7 @@ resp.Diagnostics.AddError(
 
 ---
 
-### 11. No Update Acceptance Test Steps
+### 10. No Update Acceptance Test Steps
 
 **Impact:** No acceptance test verifies that updating a resource's mutable fields (e.g., `size_gb` on block storage, `labels`) is reflected correctly.
 
@@ -120,6 +104,6 @@ resp.Diagnostics.AddError(
 
 ---
 
-### 12. No `CheckDestroy` in Acceptance Tests
+### 11. No `CheckDestroy` in Acceptance Tests
 
 **Impact:** Acceptance tests do not verify that resources are actually deleted from the API after `terraform destroy`. The framework's automatic cleanup may succeed at the provider level while leaving orphaned resources on the API.
