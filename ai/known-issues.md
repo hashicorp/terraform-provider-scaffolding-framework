@@ -66,17 +66,7 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 ---
 
-### 7. `StorageSkuDataSource` Missing `created_at` / `deleted_at` / `last_modified_at`
-
-**Location:** `internal/provider/datasource_storage_sku.go`
-
-**Problem:** The `StorageSku` SDK type uses `SkuResourceMetadata` which may not have the same timestamp fields as `RegionalResourceMetadata`. The schema omits these fields entirely. This is inconsistent with other data sources.
-
-**Risk:** If `SkuResourceMetadata` gains timestamps, the schema is not ready to expose them.
-
----
-
-### 8. Acceptance Test Cluster Is Hard-Coded
+### 7. Acceptance Test Cluster Is Hard-Coded
 
 **Location:** `internal/acctest/provider_test.go`
 
@@ -86,7 +76,7 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 ---
 
-### 9. No Update Acceptance Test Steps
+### 8. No Update Acceptance Test Steps
 
 **Impact:** No acceptance test verifies that updating a resource's mutable fields (e.g., `size_gb` on block storage, `labels`) is reflected correctly.
 
@@ -94,6 +84,6 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 ---
 
-### 10. No `CheckDestroy` in Acceptance Tests
+### 9. No `CheckDestroy` in Acceptance Tests
 
 **Impact:** Acceptance tests do not verify that resources are actually deleted from the API after `terraform destroy`. The framework's automatic cleanup may succeed at the provider level while leaving orphaned resources on the API.

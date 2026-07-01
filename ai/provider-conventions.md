@@ -83,6 +83,14 @@ Data source schemas follow the same pattern with these differences:
 - Resource-specific status fields (e.g., `state`) are added as `Computed: true`
 - `workspace_id` on data sources is `Required: true` without `RequiresReplace()`
 
+**Exception — SKU-type schemas backed by `SkuResourceMetadata`:** SKU catalog
+data sources (e.g., `seca_storage_sku`) are backed by `sdk.SkuResourceMetadata`,
+which has no timestamp fields. These schemas intentionally omit `created_at`,
+`deleted_at`, and `last_modified_at` — they expose only `id`, `name`, `tenant`,
+`region`, plus their spec fields. Do not add timestamp attributes to SKU schemas;
+the underlying metadata cannot populate them. See [glossary.md](glossary.md) for
+the `SkuResourceMetadata` field list.
+
 ## ForceNew / RequiresReplace Rules
 
 `stringplanmodifier.RequiresReplace()` is applied when changing the field would require destroying and recreating the resource at the API level:
