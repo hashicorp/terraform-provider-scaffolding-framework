@@ -38,14 +38,3 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 **What's missing:** `tflog.Debug(ctx, "...")` calls in Create, Read, Update, Delete, and Configure.
 
----
-
-### 5. Acceptance Test Cluster Is Hard-Coded
-
-**Location:** `internal/acctest/provider_test.go`
-
-**Problem:** The cluster endpoints (`172.18.0.2:30081`) are hard-coded. Running acceptance tests against a different cluster requires editing source code.
-
-**Improvement:** Read endpoints from environment variables (`SECA_REGION_ENDPOINT`, `SECA_AUTH_ENDPOINT`, etc.).
-
-> **Note:** `CheckDestroy` in acceptance tests was previously listed here as a gap. It is now implemented — see the destroy verification section in [`testing-strategy.md`](testing-strategy.md).

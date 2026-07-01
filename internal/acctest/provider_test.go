@@ -3,6 +3,7 @@ package acctest
 import (
 	"context"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 	"testing"
@@ -15,12 +16,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
-const (
-	testAccToken        = "test"
-	testAccTenant       = "seca"
-	testAccRegion       = "region"
-	testAccEndpointReg  = "http://172.18.0.2:30081/providers/seca.region"
-	testAccEndpointAuth = "http://172.18.0.2:30081/providers/seca.authorization"
+var (
+	testAccToken        = getEnvDefault("SECA_TEST_TOKEN", "test-token")
+	testAccTenant       = getEnvDefault("SECA_TEST_TENANT", "tenant-1")
+	testAccRegion       = getEnvDefault("SECA_TEST_REGION", "region-1")
+	testAccEndpointReg  = getEnvDefault("SECA_TEST_REGION_ENDPOINT", "http://localhost:8080/providers/seca.region")
+	testAccEndpointAuth = getEnvDefault("SECA_TEST_AUTH_ENDPOINT", "http://localhost:8080/providers/seca.authorization")
 )
 
 var testAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
@@ -62,6 +63,13 @@ func testAccRegionalClient(ctx context.Context) (*secapi.RegionalClient, error) 
 
 func testAccPreCheck(t *testing.T) {
 	t.Helper()
+}
+
+func getEnvDefault(key, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return def
 }
 
 func formatLabels(labels map[string]string) string {
