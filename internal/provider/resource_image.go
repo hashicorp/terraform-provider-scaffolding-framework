@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	tfschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -17,8 +18,9 @@ import (
 )
 
 var (
-	_ resource.Resource              = (*ImageResource)(nil)
-	_ resource.ResourceWithConfigure = (*ImageResource)(nil)
+	_ resource.Resource                = (*ImageResource)(nil)
+	_ resource.ResourceWithConfigure   = (*ImageResource)(nil)
+	_ resource.ResourceWithImportState = (*ImageResource)(nil)
 )
 
 type ImageResource struct {
@@ -38,6 +40,10 @@ func newImageResource() resource.Resource {
 
 func (resource *ImageResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_image"
+}
+
+func (r *ImageResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
 }
 
 type ImageModel struct {

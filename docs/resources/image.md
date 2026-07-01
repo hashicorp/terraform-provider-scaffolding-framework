@@ -97,3 +97,24 @@ output "image_boot" {
 - `last_modified_at` (String)
 - `region` (String)
 - `tenant` (String)
+
+## Import
+
+Import is supported using the following syntax:
+
+In Terraform v1.5.0 and later, the [`import` block](https://developer.hashicorp.com/terraform/language/import) can be used with the `id` attribute, for example:
+
+```terraform
+# An image is imported by its name (the tenant comes from the provider configuration).
+import {
+  to = seca_image.example
+  id = "image-1"
+}
+```
+
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
+
+```shell
+# An image is imported by its name (the tenant comes from the provider configuration).
+terraform import seca_image.example image-1
+```

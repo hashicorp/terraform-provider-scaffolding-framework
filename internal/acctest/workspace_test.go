@@ -49,6 +49,12 @@ func TestAccWorkspace(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      "seca_workspace.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateId:     "workspace-1",
+			},
+			{
 				Config: testAccWorkspaceDataSourceConfig(map[string]string{"env": "prod"}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("seca_workspace.test", "name", "workspace-1"),

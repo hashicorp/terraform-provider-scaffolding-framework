@@ -3,9 +3,11 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	tfschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -17,8 +19,9 @@ import (
 )
 
 var (
-	_ resource.Resource              = (*BlockStorageResource)(nil)
-	_ resource.ResourceWithConfigure = (*BlockStorageResource)(nil)
+	_ resource.Resource                = (*BlockStorageResource)(nil)
+	_ resource.ResourceWithConfigure   = (*BlockStorageResource)(nil)
+	_ resource.ResourceWithImportState = (*BlockStorageResource)(nil)
 )
 
 type BlockStorageResource struct {
@@ -38,6 +41,20 @@ func newBlockStorageResource() resource.Resource {
 
 func (resource *BlockStorageResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_block_storage"
+}
+
+func (r *BlockStorageResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	workspaceID, name, ok := strings.Cut(req.ID, "/")
+	if !ok || workspaceID == "" || name == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier in the format \"workspace_id/name\", got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("workspace_id"), workspaceID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), name)...)
 }
 
 type BlockStorageModel struct {

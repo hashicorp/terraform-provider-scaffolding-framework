@@ -66,6 +66,12 @@ func TestAccBlockStorage(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      "seca_block_storage.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateId:     "workspace-1/block-storage-1",
+			},
+			{
 				Config: testAccBlockStorageDataSourceConfig(map[string]string{"env": "prod"}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("seca_block_storage.test", "name", "block-storage-1"),

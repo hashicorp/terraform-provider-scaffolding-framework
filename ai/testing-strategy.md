@@ -92,7 +92,6 @@ func TestAccBlockStorage(t *testing.T) {
 | Step 3 (if updatable fields exist): Update | Updated fields are reflected |
 
 **Missing acceptance test coverage (gaps):**
-- No import state tests (`ImportStateVerify: true`)
 - No destroy verification (`CheckDestroy`)
 - No tests for invalid configurations (expect planning errors)
 

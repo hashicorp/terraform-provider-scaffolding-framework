@@ -60,9 +60,8 @@ These resources appear in `examples/` and `examples/use-cases/usage.tf` but are 
 
 See [known-issues.md](known-issues.md) for the full list. Priority items:
 
-1. **ImportState** — all existing resources need it before the provider can be considered production-ready
-2. **Acceptance test endpoints from env vars** — necessary for CI/CD against different environments
-3. **`UseStateForUnknown()`** — quality of life improvement for Terraform plans
+1. **Acceptance test endpoints from env vars** — necessary for CI/CD against different environments
+2. **`UseStateForUnknown()`** — quality of life improvement for Terraform plans
 
 ## Implementation Priority Notes
 

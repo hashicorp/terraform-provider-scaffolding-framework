@@ -62,6 +62,12 @@ func TestAccImage(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      "seca_image.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateId:     "image-1",
+			},
+			{
 				Config: testAccImageDataSourceConfig(map[string]string{"env": "prod"}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("seca_image.test", "name", "image-1"),
