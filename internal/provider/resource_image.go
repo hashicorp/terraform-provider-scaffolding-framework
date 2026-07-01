@@ -207,7 +207,10 @@ func (resource *ImageResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	image, err := resource.client.StorageV1.GetImage(ctx, tref)
-	if err != nil {
+	if err == secapi.ErrResourceNotFound {
+		resp.State.RemoveResource(ctx)
+		return
+	} else if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading image",
 			"An error was encountered when reading the image.\nError: "+err.Error(),

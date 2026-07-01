@@ -16,21 +16,9 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 ---
 
-### 2. No 404 Handling in `Read()`
-
-**Impact:** If a resource is deleted out-of-band (outside Terraform), `Read()` will return an error diagnostic instead of removing the resource from state. Terraform will keep trying to refresh a non-existent resource.
-
-**All resources affected:** `seca_workspace`, `seca_image`, `seca_block_storage`
-
-**Correct behavior:** When `GetXxx()` returns a not-found error, call `resp.State.RemoveResource(ctx)` and return without error.
-
-**Risk of workaround:** Must identify how the SDK signals a 404 (error type or error message pattern) before implementing.
-
----
-
 ## Design Gaps
 
-### 3. Duplicated Mapping Logic Between Resource and Data Source
+### 2. Duplicated Mapping Logic Between Resource and Data Source
 
 **Impact:** Every resource has both `xxxToResourceModel` and `xxxToDataSourceModel` with nearly identical code. The only difference is that data source models include `state` from status and use `Computed` for maps.
 
@@ -40,7 +28,7 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 ---
 
-### 4. No `UseStateForUnknown()` on Computed Fields
+### 3. No `UseStateForUnknown()` on Computed Fields
 
 **Impact:** On every plan, all Computed fields (`tenant`, `region`, `created_at`, etc.) show as `(known after apply)` even when no change is expected. This produces noisy plans and erodes user trust.
 
@@ -48,7 +36,7 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 ---
 
-### 5. Retry Config Is Coarse-Grained
+### 4. Retry Config Is Coarse-Grained
 
 **Impact:** All resources in a provider instance share the same retry config. A slow-provisioning instance and a fast-provisioning workspace cannot have different polling configs.
 
@@ -58,7 +46,7 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 ---
 
-### 6. No Structured Logging (`tflog`)
+### 5. No Structured Logging (`tflog`)
 
 **Impact:** No debug output when `TF_LOG=DEBUG` is set. Debugging API interactions requires network tracing.
 
@@ -66,7 +54,7 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 ---
 
-### 7. Acceptance Test Cluster Is Hard-Coded
+### 6. Acceptance Test Cluster Is Hard-Coded
 
 **Location:** `internal/acctest/provider_test.go`
 
@@ -76,7 +64,7 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 ---
 
-### 8. No Update Acceptance Test Steps
+### 7. No Update Acceptance Test Steps
 
 **Impact:** No acceptance test verifies that updating a resource's mutable fields (e.g., `size_gb` on block storage, `labels`) is reflected correctly.
 
@@ -84,6 +72,6 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 ---
 
-### 9. No `CheckDestroy` in Acceptance Tests
+### 8. No `CheckDestroy` in Acceptance Tests
 
 **Impact:** Acceptance tests do not verify that resources are actually deleted from the API after `terraform destroy`. The framework's automatic cleanup may succeed at the provider level while leaving orphaned resources on the API.

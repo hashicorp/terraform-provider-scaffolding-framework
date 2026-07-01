@@ -210,7 +210,10 @@ func (resource *BlockStorageResource) Read(ctx context.Context, req resource.Rea
 	}
 
 	block, err := resource.client.StorageV1.GetBlockStorage(ctx, wref)
-	if err != nil {
+	if err == secapi.ErrResourceNotFound {
+		resp.State.RemoveResource(ctx)
+		return
+	} else if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading block storage",
 			"An error was encountered when reading the block storage.\nError: "+err.Error(),
