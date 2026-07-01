@@ -21,7 +21,7 @@ func TestWorkspaceToResourceModel(t *testing.T) {
 			Name:           "workspace-1",
 			Tenant:         "tenant-1",
 			Region:         "region-1",
-			Ref:            "workspaces/workspace-1",
+			Ref:            "seca.workspace/v1/tenants/tenant-1/workspaces/workspace-1",
 			CreatedAt:      createdAt,
 			DeletedAt:      &deletedAt,
 			LastModifiedAt: modifiedAt,
@@ -34,7 +34,7 @@ func TestWorkspaceToResourceModel(t *testing.T) {
 	model, diags := workspaceToResourceModel(context.Background(), workspace)
 	require.False(t, diags.HasError())
 
-	assert.Equal(t, "workspaces/workspace-1", model.Id.ValueString())
+	assert.Equal(t, "seca.workspace/v1/tenants/tenant-1/workspaces/workspace-1", model.Id.ValueString())
 	assert.Equal(t, "workspace-1", model.Name.ValueString())
 	assert.Equal(t, "tenant-1", model.Tenant.ValueString())
 	assert.Equal(t, "region-1", model.Region.ValueString())

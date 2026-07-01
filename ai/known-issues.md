@@ -2,9 +2,11 @@
 
 This document captures observed technical debt and known issues. **Do not fix these without a tracked issue and review.** The purpose of documenting them here is to ensure AI agents do not accidentally work around or worsen these problems.
 
+Epic tracker: [#16 — Technical Debt Plan](https://github.com/eu-sovereign-cloud/terraform-provider-seca/issues/16)
+
 ## Critical Gaps
 
-### 1. No `ImportState` Implementation
+### 1. No `ImportState` Implementation — [#5](https://github.com/eu-sovereign-cloud/terraform-provider-seca/issues/5)
 
 **Impact:** Users cannot import existing SECA resources into Terraform state (`terraform import`).
 
@@ -16,7 +18,7 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 ---
 
-### 2. No 404 Handling in `Read()`
+### 2. No 404 Handling in `Read()` — [#6](https://github.com/eu-sovereign-cloud/terraform-provider-seca/issues/6)
 
 **Impact:** If a resource is deleted out-of-band (outside Terraform), `Read()` will return an error diagnostic instead of removing the resource from state. Terraform will keep trying to refresh a non-existent resource.
 
@@ -28,7 +30,7 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 ---
 
-### 3. Delete Does Not Poll for Completion
+### 3. Delete Does Not Poll for Completion — [#7](https://github.com/eu-sovereign-cloud/terraform-provider-seca/issues/7)
 
 **Impact:** Terraform considers a resource deleted as soon as `DeleteXxx()` returns without error, but the resource may still be deleting on the API side. A subsequent create of a same-named resource may conflict.
 
@@ -38,7 +40,7 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 ---
 
-### 4. Copy-Paste Error in `resource_workspace.go` Create()
+### 4. Copy-Paste Error in `resource_workspace.go` Create() — [#8](https://github.com/eu-sovereign-cloud/terraform-provider-seca/issues/8)
 
 **Location:** `internal/provider/resource_workspace.go:168`
 
@@ -56,7 +58,7 @@ resp.Diagnostics.AddError(
 
 ## Design Gaps
 
-### 5. Duplicated Mapping Logic Between Resource and Data Source
+### 5. Duplicated Mapping Logic Between Resource and Data Source — [#9](https://github.com/eu-sovereign-cloud/terraform-provider-seca/issues/9)
 
 **Impact:** Every resource has both `xxxToResourceModel` and `xxxToDataSourceModel` with nearly identical code. The only difference is that data source models include `state` from status and use `Computed` for maps.
 
@@ -66,7 +68,7 @@ resp.Diagnostics.AddError(
 
 ---
 
-### 6. No `UseStateForUnknown()` on Computed Fields
+### 6. No `UseStateForUnknown()` on Computed Fields — [#10](https://github.com/eu-sovereign-cloud/terraform-provider-seca/issues/10)
 
 **Impact:** On every plan, all Computed fields (`tenant`, `region`, `created_at`, etc.) show as `(known after apply)` even when no change is expected. This produces noisy plans and erodes user trust.
 
@@ -74,7 +76,7 @@ resp.Diagnostics.AddError(
 
 ---
 
-### 7. Retry Config Is Coarse-Grained
+### 7. Retry Config Is Coarse-Grained — [#11](https://github.com/eu-sovereign-cloud/terraform-provider-seca/issues/11)
 
 **Impact:** All resources in a provider instance share the same retry config. A slow-provisioning instance and a fast-provisioning workspace cannot have different polling configs.
 
@@ -84,7 +86,7 @@ resp.Diagnostics.AddError(
 
 ---
 
-### 8. No Structured Logging (`tflog`)
+### 8. No Structured Logging (`tflog`) — [#12](https://github.com/eu-sovereign-cloud/terraform-provider-seca/issues/12)
 
 **Impact:** No debug output when `TF_LOG=DEBUG` is set. Debugging API interactions requires network tracing.
 
@@ -92,17 +94,7 @@ resp.Diagnostics.AddError(
 
 ---
 
-### 9. `StorageSkuDataSource` Missing `created_at` / `deleted_at` / `last_modified_at`
-
-**Location:** `internal/provider/datasource_storage_sku.go`
-
-**Problem:** The `StorageSku` SDK type uses `SkuResourceMetadata` which may not have the same timestamp fields as `RegionalResourceMetadata`. The schema omits these fields entirely. This is inconsistent with other data sources.
-
-**Risk:** If `SkuResourceMetadata` gains timestamps, the schema is not ready to expose them.
-
----
-
-### 10. Acceptance Test Cluster Is Hard-Coded
+### 9. Acceptance Test Cluster Is Hard-Coded — [#13](https://github.com/eu-sovereign-cloud/terraform-provider-seca/issues/13)
 
 **Location:** `internal/acctest/provider_test.go`
 
@@ -112,7 +104,7 @@ resp.Diagnostics.AddError(
 
 ---
 
-### 11. No Update Acceptance Test Steps
+### 10. No Update Acceptance Test Steps — [#14](https://github.com/eu-sovereign-cloud/terraform-provider-seca/issues/14)
 
 **Impact:** No acceptance test verifies that updating a resource's mutable fields (e.g., `size_gb` on block storage, `labels`) is reflected correctly.
 
@@ -120,6 +112,6 @@ resp.Diagnostics.AddError(
 
 ---
 
-### 12. No `CheckDestroy` in Acceptance Tests
+### 11. No `CheckDestroy` in Acceptance Tests — [#15](https://github.com/eu-sovereign-cloud/terraform-provider-seca/issues/15)
 
 **Impact:** Acceptance tests do not verify that resources are actually deleted from the API after `terraform destroy`. The framework's automatic cleanup may succeed at the provider level while leaving orphaned resources on the API.

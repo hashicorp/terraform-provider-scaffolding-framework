@@ -22,7 +22,7 @@ func TestBlockStorageToResourceModel(t *testing.T) {
 			Workspace:      "workspace-1",
 			Tenant:         "tenant-1",
 			Region:         "region-1",
-			Ref:            "block-storages/block-storage-1",
+			Ref:            "seca.storage/v1/tenants/tenant-1/workspaces/workspace-1/block-storages/block-storage-1",
 			CreatedAt:      createdAt,
 			DeletedAt:      &deletedAt,
 			LastModifiedAt: modifiedAt,
@@ -40,7 +40,7 @@ func TestBlockStorageToResourceModel(t *testing.T) {
 	model, diags := blockStorageToResourceModel(context.Background(), block)
 	require.False(t, diags.HasError())
 
-	assert.Equal(t, "block-storages/block-storage-1", model.Id.ValueString())
+	assert.Equal(t, "seca.storage/v1/tenants/tenant-1/workspaces/workspace-1/block-storages/block-storage-1", model.Id.ValueString())
 	assert.Equal(t, "block-storage-1", model.Name.ValueString())
 	assert.Equal(t, "workspace-1", model.WorkspaceId.ValueString())
 	assert.Equal(t, "tenant-1", model.Tenant.ValueString())

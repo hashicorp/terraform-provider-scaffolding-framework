@@ -16,7 +16,7 @@ func TestStorageSkuToDataSourceModel(t *testing.T) {
 			Name:   "sku-1",
 			Tenant: "tenant-1",
 			Region: "region-1",
-			Ref:    "storage-skus/sku-1",
+			Ref:    "seca.storage/v1/tenants/tenant-1/storage-skus/sku-1",
 		},
 		Labels:      sdk.Labels{"tier": "gold"},
 		Annotations: sdk.Annotations{"team": "core"},
@@ -31,7 +31,7 @@ func TestStorageSkuToDataSourceModel(t *testing.T) {
 	model, diags := storageSkuToDataSourceModel(context.Background(), sku)
 	require.False(t, diags.HasError())
 
-	assert.Equal(t, "storage-skus/sku-1", model.Id.ValueString())
+	assert.Equal(t, "seca.storage/v1/tenants/tenant-1/storage-skus/sku-1", model.Id.ValueString())
 	assert.Equal(t, "sku-1", model.Name.ValueString())
 	assert.Equal(t, "tenant-1", model.Tenant.ValueString())
 	assert.Equal(t, "region-1", model.Region.ValueString())
