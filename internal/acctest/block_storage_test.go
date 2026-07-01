@@ -1,13 +1,14 @@
 package acctest
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func testAccBlockStorageResourceConfig() string {
-	return testAccProviderConfig() + `
+func testAccBlockStorageResourceConfig(labels map[string]string) string {
+	return testAccProviderConfig() + fmt.Sprintf(`
 resource "seca_workspace" "test" {
   name = "workspace-1"
 }
@@ -17,12 +18,13 @@ resource "seca_block_storage" "test" {
 
   size_gb = 10
   sku_id  = "storage-skus/RD500"
+  labels  = %s
 }
-`
+`, formatLabels(labels))
 }
 
-func testAccBlockStorageDataSourceConfig() string {
-	return testAccProviderConfig() + `
+func testAccBlockStorageDataSourceConfig(labels map[string]string) string {
+	return testAccProviderConfig() + fmt.Sprintf(`
 resource "seca_workspace" "test" {
   name = "workspace-1"
 }
@@ -32,11 +34,12 @@ resource "seca_block_storage" "test" {
 
   size_gb = 10
   sku_id  = "storage-skus/RD500"
+  labels  = %s
 }
 data "seca_block_storage" "test" {
   name         = "block-storage-1"
   workspace_id = seca_workspace.test.name
-}`
+}`, formatLabels(labels))
 }
 
 func TestAccBlockStorage(t *testing.T) {
@@ -45,21 +48,30 @@ func TestAccBlockStorage(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBlockStorageResourceConfig(),
+				Config: testAccBlockStorageResourceConfig(map[string]string{"env": "dev"}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("seca_block_storage.test", "name", "block-storage-1"),
 					resource.TestCheckResourceAttr("seca_block_storage.test", "workspace_id", "workspace-1"),
 					resource.TestCheckResourceAttr("seca_block_storage.test", "tenant", "seca"),
 					resource.TestCheckResourceAttr("seca_block_storage.test", "region", "region"),
 					resource.TestCheckResourceAttr("seca_block_storage.test", "size_gb", "10"),
+					resource.TestCheckResourceAttr("seca_block_storage.test", "labels.env", "dev"),
 				),
 			},
 			{
-				Config: testAccBlockStorageDataSourceConfig(),
+				Config: testAccBlockStorageResourceConfig(map[string]string{"env": "prod"}),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("seca_block_storage.test", "name", "block-storage-1"),
+					resource.TestCheckResourceAttr("seca_block_storage.test", "labels.env", "prod"),
+				),
+			},
+			{
+				Config: testAccBlockStorageDataSourceConfig(map[string]string{"env": "prod"}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("seca_block_storage.test", "name", "block-storage-1"),
 					resource.TestCheckResourceAttr("seca_block_storage.test", "workspace_id", "workspace-1"),
 					resource.TestCheckResourceAttr("seca_block_storage.test", "size_gb", "10"),
+					resource.TestCheckResourceAttr("seca_block_storage.test", "labels.env", "prod"),
 
 					resource.TestCheckResourceAttr("data.seca_block_storage.test", "name", "block-storage-1"),
 					resource.TestCheckResourceAttr("data.seca_block_storage.test", "workspace_id", "workspace-1"),

@@ -64,14 +64,6 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 ---
 
-### 7. No Update Acceptance Test Steps
-
-**Impact:** No acceptance test verifies that updating a resource's mutable fields (e.g., `size_gb` on block storage, `labels`) is reflected correctly.
-
-**All resources affected:** `seca_workspace`, `seca_image`, `seca_block_storage`
-
----
-
-### 8. No `CheckDestroy` in Acceptance Tests
+### 7. No `CheckDestroy` in Acceptance Tests
 
 **Impact:** Acceptance tests do not verify that resources are actually deleted from the API after `terraform destroy`. The framework's automatic cleanup may succeed at the provider level while leaving orphaned resources on the API.

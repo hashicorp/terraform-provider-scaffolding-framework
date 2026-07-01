@@ -1,6 +1,9 @@
 package acctest
 
 import (
+	"fmt"
+	"sort"
+	"strings"
 	"testing"
 
 	"github.com/eu-sovereign-cloud/terraform-provider-seca/internal/provider"
@@ -28,4 +31,24 @@ provider "seca" {
 
 func testAccPreCheck(t *testing.T) {
 	t.Helper()
+}
+
+func formatLabels(labels map[string]string) string {
+	if len(labels) == 0 {
+		return "{}"
+	}
+
+	keys := make([]string, 0, len(labels))
+	for k := range labels {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	var b strings.Builder
+	b.WriteString("{\n")
+	for _, k := range keys {
+		fmt.Fprintf(&b, "    %s = %q\n", k, labels[k])
+	}
+	b.WriteString("  }")
+	return b.String()
 }
