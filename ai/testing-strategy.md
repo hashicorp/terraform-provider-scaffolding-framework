@@ -93,7 +93,15 @@ func TestAccBlockStorage(t *testing.T) {
 | Step 3 (if updatable fields exist): Update | Updated fields are reflected |
 | `CheckDestroy` | After teardown, each resource returns `secapi.ErrResourceNotFound` from the API |
 
-**Destroy verification (`CheckDestroy`):** Every `TestCase` sets `CheckDestroy: testAccCheck<Resource>Destroy`. The helper builds an SDK client via `testAccRegionalClient(ctx)` (shares credentials/endpoints with the provider config), iterates state resources of its type, and asserts each `Get<Resource>` call returns `secapi.ErrResourceNotFound`. A still-present resource fails the test, catching orphaned API resources that Terraform's own cleanup misses. Add one per new resource.
+**Destroy verification (`CheckDestroy`):** Every `TestCase` sets `CheckDestroy: testAccCheck<Resource>Destroy`. The helper builds an SDK client via `testAccRegionalClient(ctx)` (shares credentials/endpoints with the provider config), iterates state resources of its type, and asserts each `Get<Resource>` call returns `secapi.ErrResourceNotFound`. A still-present resource (or any other error) fails the test, catching orphaned API resources that Terraform's own cleanup misses.
+
+Existing destroy helpers:
+
+- `testAccCheckWorkspaceDestroy` — `WorkspaceV1.GetWorkspace` (tenant-scoped)
+- `testAccCheckBlockStorageDestroy` — `StorageV1.GetBlockStorage` (workspace-scoped)
+- `testAccCheckImageDestroy` — `StorageV1.GetImage` (tenant-scoped)
+
+**When adding a new resource:** add a matching `testAccCheck<Resource>Destroy` function and wire it into the resource's `TestCase`.
 
 **Missing acceptance test coverage (gaps):**
 - No tests for invalid configurations (expect planning errors)

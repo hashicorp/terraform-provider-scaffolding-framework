@@ -48,14 +48,4 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 **Improvement:** Read endpoints from environment variables (`SECA_REGION_ENDPOINT`, `SECA_AUTH_ENDPOINT`, etc.).
 
----
-
-### 6. No `CheckDestroy` in Acceptance Tests — RESOLVED
-
-**Resolution:** Each acceptance test now sets `CheckDestroy` on its `resource.TestCase`. The helper builds an SDK regional client (`testAccRegionalClient` in `provider_test.go`, sharing credentials/endpoints with the provider config), iterates the destroyed resources of its type in the Terraform state, and calls the corresponding `Get<Resource>` SDK method. It asserts every resource returns `secapi.ErrResourceNotFound`; any resource still present (or any other error) fails the test.
-
-- `testAccCheckWorkspaceDestroy` — `WorkspaceV1.GetWorkspace` (tenant-scoped)
-- `testAccCheckBlockStorageDestroy` — `StorageV1.GetBlockStorage` (workspace-scoped)
-- `testAccCheckImageDestroy` — `StorageV1.GetImage` (tenant-scoped)
-
-**When adding a new resource:** add a matching `testAccCheck<Resource>Destroy` function and wire it into the resource's `TestCase`.
+> **Note:** `CheckDestroy` in acceptance tests was previously listed here as a gap. It is now implemented — see the destroy verification section in [`testing-strategy.md`](testing-strategy.md).
