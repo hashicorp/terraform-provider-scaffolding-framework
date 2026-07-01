@@ -21,7 +21,7 @@ func TestImageToDataSourceModel(t *testing.T) {
 			Name:           "image-1",
 			Tenant:         "tenant-1",
 			Region:         "region-1",
-			Ref:            "images/image-1",
+			Ref:            "seca.storage/v1/tenants/tenant-1/images/image-1",
 			CreatedAt:      createdAt,
 			DeletedAt:      &deletedAt,
 			LastModifiedAt: modifiedAt,
@@ -41,7 +41,7 @@ func TestImageToDataSourceModel(t *testing.T) {
 	model, diags := imageToDataSourceModel(context.Background(), image)
 	require.False(t, diags.HasError())
 
-	assert.Equal(t, "images/image-1", model.Id.ValueString())
+	assert.Equal(t, "seca.storage/v1/tenants/tenant-1/images/image-1", model.Id.ValueString())
 	assert.Equal(t, "image-1", model.Name.ValueString())
 	assert.Equal(t, "tenant-1", model.Tenant.ValueString())
 	assert.Equal(t, "region-1", model.Region.ValueString())

@@ -19,7 +19,7 @@ func TestRegionToDataSourceModel(t *testing.T) {
 	region := &sdk.Region{
 		Metadata: &sdk.GlobalResourceMetadata{
 			Name:           "region-1",
-			Ref:            "regions/region-1",
+			Ref:            "seca.region/v1/regions/region-1",
 			CreatedAt:      createdAt,
 			DeletedAt:      &deletedAt,
 			LastModifiedAt: modifiedAt,
@@ -36,7 +36,7 @@ func TestRegionToDataSourceModel(t *testing.T) {
 	model, diags := regionToDataSourceModel(context.Background(), region)
 	require.False(t, diags.HasError())
 
-	assert.Equal(t, "regions/region-1", model.Id.ValueString())
+	assert.Equal(t, "seca.region/v1/regions/region-1", model.Id.ValueString())
 	assert.Equal(t, "region-1", model.Name.ValueString())
 
 	assert.Equal(t, createdAt.Format(time.RFC3339), model.CreatedAt.ValueString())

@@ -91,15 +91,29 @@ The mapping between Terraform models and SDK types is done exclusively by the pr
 
 ## Reference System
 
-The SECA API uses a `<kind>/<name>` format for resource references:
+The SECA API uses structured references to identify resources. A reference is an object with the following fields:
 
-- `regions/region-1`
-- `workspaces/workspace-1`
-- `block-storages/my-vol`
-- `images/my-image`
-- `storage-skus/RD500`
+| Field | Required | Description | Example |
+|---|---|---|---|
+| `region` | no | Region; inferred from context if omitted | `eu-central-1` |
+| `provider` | no | Provider+version; inferred if omitted | `seca.compute/v1` |
+| `tenant` | no | Tenant; inferred if omitted | `tenant-1` |
+| `workspace` | no | Workspace; inferred if omitted | `workspace-1` |
+| `resource` | **yes** | Resource path within its workspace context | `instances/my-server` |
 
-These full references are stored as Terraform `id` (mapped from `Metadata.Ref`). When resources reference each other (e.g., `block_storage_id` on an image), they store the full reference string.
+The `resource` path is `<type>/<name>` for flat resources, or `<parent-type>/<parent-name>/<child-type>/<child-name>` for hierarchical resources.
+
+`Metadata.Ref` (stored as Terraform `id`) is the **full serialized URN** following the pattern `{provider}/{version}/tenants/{tenant}/workspaces/{workspace}/{type}/{name}`. For tenant-scoped resources the workspace segment is absent; for global resources the tenant segment is absent too. Examples by scope:
+
+| Scope | Resource | Example `id` |
+|---|---|---|
+| Global | `seca_region` | `seca.region/v1/regions/region-1` |
+| Tenant | `seca_workspace` | `seca.workspace/v1/tenants/tenant-1/workspaces/workspace-1` |
+| Tenant | `seca_image` | `seca.storage/v1/tenants/tenant-1/images/image-1` |
+| Tenant | `seca_storage_sku` | `seca.storage/v1/tenants/tenant-1/storage-skus/RD500` |
+| Workspace | `seca_block_storage` | `seca.storage/v1/tenants/tenant-1/workspaces/workspace-1/block-storages/my-vol` |
+
+**Cross-resource reference fields** (e.g., `block_storage_id` on an image, `sku_id` on a block storage) store only the `resource` path segment from the structured `sdk.Reference` object — not the full URN. The provider, tenant, and workspace are left blank in the `Reference` struct and inferred by the API from context.
 
 ## Scoping Model
 
