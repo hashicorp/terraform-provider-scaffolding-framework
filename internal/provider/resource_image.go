@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	sdk "github.com/eu-sovereign-cloud/go-sdk/pkg/spec/schema"
 	"github.com/eu-sovereign-cloud/go-sdk/secapi"
@@ -137,7 +138,7 @@ func (resource *ImageResource) Schema(_ context.Context, _ resource.SchemaReques
 	}
 }
 
-func (r *ImageResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *ImageResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -159,6 +160,14 @@ func (r *ImageResource) Configure(_ context.Context, req resource.ConfigureReque
 	r.retryDelay = clients.RetryDelay
 	r.retryInterval = clients.RetryInterval
 	r.retryMaxAttempts = clients.RetryMaxAttempts
+
+	tflog.Debug(ctx, "configured image resource")
+}
+
+func (r *ImageResource) logFields(ctx context.Context, data ImageModel) context.Context {
+	ctx = tflog.SetField(ctx, "tenant_id", r.tenant)
+	ctx = tflog.SetField(ctx, "name", data.Name.ValueString())
+	return ctx
 }
 
 func (resource *ImageResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -167,6 +176,9 @@ func (resource *ImageResource) Create(ctx context.Context, req resource.CreateRe
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	ctx = resource.logFields(ctx, data)
+	tflog.Debug(ctx, "creating image")
 
 	// Create the image
 
@@ -180,6 +192,8 @@ func (resource *ImageResource) Create(ctx context.Context, req resource.CreateRe
 		)
 		return
 	}
+
+	tflog.Debug(ctx, "waiting for image to become active")
 
 	// Wait until it is active
 
@@ -210,6 +224,8 @@ func (resource *ImageResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
+	tflog.Info(ctx, "image created")
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -220,6 +236,9 @@ func (resource *ImageResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
+	ctx = resource.logFields(ctx, data)
+	tflog.Debug(ctx, "reading image")
+
 	// Read the image
 
 	tref := secapi.TenantReference{
@@ -229,6 +248,7 @@ func (resource *ImageResource) Read(ctx context.Context, req resource.ReadReques
 
 	image, err := resource.client.StorageV1.GetImage(ctx, tref)
 	if err == secapi.ErrResourceNotFound {
+		tflog.Debug(ctx, "image not found, removing from state")
 		resp.State.RemoveResource(ctx)
 		return
 	} else if err != nil {
@@ -255,6 +275,9 @@ func (resource *ImageResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
+	ctx = resource.logFields(ctx, data)
+	tflog.Debug(ctx, "updating image")
+
 	// Update the image
 
 	image := imageFromModel(resource.tenant, data)
@@ -267,6 +290,8 @@ func (resource *ImageResource) Update(ctx context.Context, req resource.UpdateRe
 		)
 		return
 	}
+
+	tflog.Debug(ctx, "waiting for image to become active")
 
 	// Wait until it is active
 
@@ -297,6 +322,8 @@ func (resource *ImageResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
+	tflog.Info(ctx, "image updated")
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -306,6 +333,9 @@ func (resource *ImageResource) Delete(ctx context.Context, req resource.DeleteRe
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	ctx = resource.logFields(ctx, data)
+	tflog.Debug(ctx, "deleting image")
 
 	// Delete the image
 
@@ -324,6 +354,8 @@ func (resource *ImageResource) Delete(ctx context.Context, req resource.DeleteRe
 		)
 		return
 	}
+
+	tflog.Debug(ctx, "waiting for image to be deleted")
 
 	// Wait until it is deleted
 
@@ -346,6 +378,8 @@ func (resource *ImageResource) Delete(ctx context.Context, req resource.DeleteRe
 		)
 		return
 	}
+
+	tflog.Info(ctx, "image deleted")
 }
 
 func imageFromModel(tenant string, data ImageModel) *sdk.Image {

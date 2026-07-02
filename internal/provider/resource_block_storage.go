@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	sdk "github.com/eu-sovereign-cloud/go-sdk/pkg/spec/schema"
 	"github.com/eu-sovereign-cloud/go-sdk/secapi"
@@ -149,7 +150,7 @@ func (resource *BlockStorageResource) Schema(_ context.Context, _ resource.Schem
 	}
 }
 
-func (r *BlockStorageResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *BlockStorageResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -171,6 +172,15 @@ func (r *BlockStorageResource) Configure(_ context.Context, req resource.Configu
 	r.retryDelay = clients.RetryDelay
 	r.retryInterval = clients.RetryInterval
 	r.retryMaxAttempts = clients.RetryMaxAttempts
+
+	tflog.Debug(ctx, "configured block storage resource")
+}
+
+func (r *BlockStorageResource) logFields(ctx context.Context, data BlockStorageModel) context.Context {
+	ctx = tflog.SetField(ctx, "tenant_id", r.tenant)
+	ctx = tflog.SetField(ctx, "workspace_id", data.WorkspaceId.ValueString())
+	ctx = tflog.SetField(ctx, "name", data.Name.ValueString())
+	return ctx
 }
 
 func (resource *BlockStorageResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -179,6 +189,9 @@ func (resource *BlockStorageResource) Create(ctx context.Context, req resource.C
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	ctx = resource.logFields(ctx, data)
+	tflog.Debug(ctx, "creating block storage")
 
 	// Create the block storage
 
@@ -192,6 +205,8 @@ func (resource *BlockStorageResource) Create(ctx context.Context, req resource.C
 		)
 		return
 	}
+
+	tflog.Debug(ctx, "waiting for block storage to become active")
 
 	// Wait until it is active
 
@@ -223,6 +238,8 @@ func (resource *BlockStorageResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
+	tflog.Info(ctx, "block storage created")
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -232,6 +249,9 @@ func (resource *BlockStorageResource) Read(ctx context.Context, req resource.Rea
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	ctx = resource.logFields(ctx, data)
+	tflog.Debug(ctx, "reading block storage")
 
 	// Read the block storage
 
@@ -243,6 +263,7 @@ func (resource *BlockStorageResource) Read(ctx context.Context, req resource.Rea
 
 	block, err := resource.client.StorageV1.GetBlockStorage(ctx, wref)
 	if err == secapi.ErrResourceNotFound {
+		tflog.Debug(ctx, "block storage not found, removing from state")
 		resp.State.RemoveResource(ctx)
 		return
 	} else if err != nil {
@@ -269,6 +290,9 @@ func (resource *BlockStorageResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
+	ctx = resource.logFields(ctx, data)
+	tflog.Debug(ctx, "updating block storage")
+
 	// Update the block storage
 
 	block := blockStorageFromModel(resource.tenant, data)
@@ -281,6 +305,8 @@ func (resource *BlockStorageResource) Update(ctx context.Context, req resource.U
 		)
 		return
 	}
+
+	tflog.Debug(ctx, "waiting for block storage to become active")
 
 	// Wait until it is active
 
@@ -312,6 +338,8 @@ func (resource *BlockStorageResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
+	tflog.Info(ctx, "block storage updated")
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -321,6 +349,9 @@ func (resource *BlockStorageResource) Delete(ctx context.Context, req resource.D
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	ctx = resource.logFields(ctx, data)
+	tflog.Debug(ctx, "deleting block storage")
 
 	// Delete the block storage
 
@@ -340,6 +371,8 @@ func (resource *BlockStorageResource) Delete(ctx context.Context, req resource.D
 		)
 		return
 	}
+
+	tflog.Debug(ctx, "waiting for block storage to be deleted")
 
 	// Wait until it is deleted
 
@@ -363,6 +396,8 @@ func (resource *BlockStorageResource) Delete(ctx context.Context, req resource.D
 		)
 		return
 	}
+
+	tflog.Info(ctx, "block storage deleted")
 }
 
 func blockStorageFromModel(tenant string, data BlockStorageModel) *sdk.BlockStorage {

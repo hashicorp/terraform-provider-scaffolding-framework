@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 type SecaProvider struct {
@@ -96,6 +97,8 @@ func (p *SecaProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 		return
 	}
 
+	tflog.Debug(ctx, "configuring seca provider")
+
 	config := &clientConfig{
 		Token:  model.Token.ValueString(),
 		Tenant: model.Tenant.ValueString(),
@@ -134,6 +137,8 @@ func (p *SecaProvider) Configure(ctx context.Context, req provider.ConfigureRequ
 
 	resp.DataSourceData = *clients
 	resp.ResourceData = *clients
+
+	tflog.Info(ctx, "configured seca provider")
 }
 
 func (p *SecaProvider) Resources(_ context.Context) []func() resource.Resource {
