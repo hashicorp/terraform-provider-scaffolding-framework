@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -30,9 +29,7 @@ type WorkspaceResource struct {
 	tenant string
 	region string
 
-	retryDelay       time.Duration
-	retryInterval    time.Duration
-	retryMaxAttempts int
+	retry retryConfig
 }
 
 func newWorkspaceResource() resource.Resource {
@@ -59,6 +56,8 @@ type WorkspaceModel struct {
 	Labels      types.Map `tfsdk:"labels"`
 	Annotations types.Map `tfsdk:"annotations"`
 	Extensions  types.Map `tfsdk:"extensions"`
+
+	Retry *RetryModel `tfsdk:"retry"`
 }
 
 func (resource *WorkspaceResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -115,6 +114,7 @@ func (resource *WorkspaceResource) Schema(_ context.Context, _ resource.SchemaRe
 				ElementType: types.StringType,
 				Optional:    true,
 			},
+			"retry": retryResourceSchema(),
 		},
 	}
 }
@@ -138,9 +138,11 @@ func (r *WorkspaceResource) Configure(ctx context.Context, req resource.Configur
 	r.tenant = clients.Tenant
 	r.region = clients.Region
 
-	r.retryDelay = clients.RetryDelay
-	r.retryInterval = clients.RetryInterval
-	r.retryMaxAttempts = clients.RetryMaxAttempts
+	r.retry = retryConfig{
+		delay:       clients.RetryDelay,
+		interval:    clients.RetryInterval,
+		maxAttempts: clients.RetryMaxAttempts,
+	}
 
 	tflog.Debug(ctx, "configured workspace resource")
 }
@@ -191,12 +193,7 @@ func (resource *WorkspaceResource) Create(ctx context.Context, req resource.Crea
 		Name:   workspace.Metadata.Name,
 	}
 
-	config := secapi.ResourceObserverUntilValueConfig[sdk.ResourceState]{
-		ExpectedValues: []sdk.ResourceState{sdk.ResourceStateActive},
-		Delay:          resource.retryDelay,
-		Interval:       resource.retryInterval,
-		MaxAttempts:    resource.retryMaxAttempts,
-	}
+	config := resource.retry.with(data.Retry).untilState(sdk.ResourceStateActive)
 
 	workspace, err = resource.client.WorkspaceV1.GetWorkspaceUntilState(ctx, tref, config)
 	if err != nil {
@@ -297,12 +294,7 @@ func (resource *WorkspaceResource) Update(ctx context.Context, req resource.Upda
 		Name:   workspace.Metadata.Name,
 	}
 
-	config := secapi.ResourceObserverUntilValueConfig[sdk.ResourceState]{
-		ExpectedValues: []sdk.ResourceState{sdk.ResourceStateActive},
-		Delay:          resource.retryDelay,
-		Interval:       resource.retryInterval,
-		MaxAttempts:    resource.retryMaxAttempts,
-	}
+	config := resource.retry.with(data.Retry).untilState(sdk.ResourceStateActive)
 
 	workspace, err = resource.client.WorkspaceV1.GetWorkspaceUntilState(ctx, tref, config)
 	if err != nil {
@@ -361,11 +353,7 @@ func (resource *WorkspaceResource) Delete(ctx context.Context, req resource.Dele
 		Name:   workspace.Metadata.Name,
 	}
 
-	config := secapi.ResourceObserverConfig{
-		Delay:       resource.retryDelay,
-		Interval:    resource.retryInterval,
-		MaxAttempts: resource.retryMaxAttempts,
-	}
+	config := resource.retry.with(data.Retry).observer()
 
 	err = resource.client.WorkspaceV1.WatchWorkspaceUntilDeleted(ctx, tref, config)
 	if err != nil {

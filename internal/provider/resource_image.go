@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -30,9 +29,7 @@ type ImageResource struct {
 	tenant string
 	region string
 
-	retryDelay       time.Duration
-	retryInterval    time.Duration
-	retryMaxAttempts int
+	retry retryConfig
 }
 
 func newImageResource() resource.Resource {
@@ -64,6 +61,8 @@ type ImageModel struct {
 	CpuArchitecture types.String `tfsdk:"cpu_architecture"`
 	Initializer     types.String `tfsdk:"initializer"`
 	Boot            types.String `tfsdk:"boot"`
+
+	Retry *RetryModel `tfsdk:"retry"`
 }
 
 func (resource *ImageResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -134,6 +133,7 @@ func (resource *ImageResource) Schema(_ context.Context, _ resource.SchemaReques
 				Optional: true,
 				Computed: true,
 			},
+			"retry": retryResourceSchema(),
 		},
 	}
 }
@@ -157,9 +157,11 @@ func (r *ImageResource) Configure(ctx context.Context, req resource.ConfigureReq
 	r.tenant = clients.Tenant
 	r.region = clients.Region
 
-	r.retryDelay = clients.RetryDelay
-	r.retryInterval = clients.RetryInterval
-	r.retryMaxAttempts = clients.RetryMaxAttempts
+	r.retry = retryConfig{
+		delay:       clients.RetryDelay,
+		interval:    clients.RetryInterval,
+		maxAttempts: clients.RetryMaxAttempts,
+	}
 
 	tflog.Debug(ctx, "configured image resource")
 }
@@ -202,12 +204,7 @@ func (resource *ImageResource) Create(ctx context.Context, req resource.CreateRe
 		Name:   image.Metadata.Name,
 	}
 
-	config := secapi.ResourceObserverUntilValueConfig[sdk.ResourceState]{
-		ExpectedValues: []sdk.ResourceState{sdk.ResourceStateActive},
-		Delay:          resource.retryDelay,
-		Interval:       resource.retryInterval,
-		MaxAttempts:    resource.retryMaxAttempts,
-	}
+	config := resource.retry.with(data.Retry).untilState(sdk.ResourceStateActive)
 
 	image, err = resource.client.StorageV1.GetImageUntilState(ctx, tref, config)
 	if err != nil {
@@ -300,12 +297,7 @@ func (resource *ImageResource) Update(ctx context.Context, req resource.UpdateRe
 		Name:   image.Metadata.Name,
 	}
 
-	config := secapi.ResourceObserverUntilValueConfig[sdk.ResourceState]{
-		ExpectedValues: []sdk.ResourceState{sdk.ResourceStateActive},
-		Delay:          resource.retryDelay,
-		Interval:       resource.retryInterval,
-		MaxAttempts:    resource.retryMaxAttempts,
-	}
+	config := resource.retry.with(data.Retry).untilState(sdk.ResourceStateActive)
 
 	image, err = resource.client.StorageV1.GetImageUntilState(ctx, tref, config)
 	if err != nil {
@@ -364,11 +356,7 @@ func (resource *ImageResource) Delete(ctx context.Context, req resource.DeleteRe
 		Name:   image.Metadata.Name,
 	}
 
-	config := secapi.ResourceObserverConfig{
-		Delay:       resource.retryDelay,
-		Interval:    resource.retryInterval,
-		MaxAttempts: resource.retryMaxAttempts,
-	}
+	config := resource.retry.with(data.Retry).observer()
 
 	err = resource.client.StorageV1.WatchImageUntilDeleted(ctx, tref, config)
 	if err != nil {

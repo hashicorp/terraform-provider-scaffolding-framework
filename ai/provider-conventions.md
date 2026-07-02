@@ -135,13 +135,17 @@ func (r *XxxResource) Configure(_ context.Context, req resource.ConfigureRequest
     r.client = clients.RegionalClient  // or GlobalClient for global resources
     r.tenant = clients.Tenant
     r.region = clients.Region
-    r.retryDelay = clients.RetryDelay
-    r.retryInterval = clients.RetryInterval
-    r.retryMaxAttempts = clients.RetryMaxAttempts
+    r.retry = retryConfig{
+        delay:       clients.RetryDelay,
+        interval:    clients.RetryInterval,
+        maxAttempts: clients.RetryMaxAttempts,
+    }
 }
 ```
 
-Data sources that do not perform async operations do not need the retry fields.
+`r.retry` (a `retryConfig`, defined in `retry.go`) holds the resolved provider-level retry values. Each resource also exposes an optional per-resource `retry` block — add `Retry *SecaRetryModel` to the model, declare it in the schema via `retryResourceSchema()`, and resolve the effective config at poll time with `r.retry.with(data.Retry)` (see [async-operations.md](async-operations.md)).
+
+Data sources that do not perform async operations do not need the retry field or block.
 
 ## Diagnostic Error Messages
 

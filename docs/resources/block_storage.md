@@ -72,6 +72,7 @@ output "block_storage_source_image_id" {
 - `annotations` (Map of String)
 - `extensions` (Map of String)
 - `labels` (Map of String)
+- `retry` (Attributes) (see [below for nested schema](#nestedatt--retry))
 - `source_image_id` (String)
 
 ### Read-Only
@@ -82,6 +83,15 @@ output "block_storage_source_image_id" {
 - `last_modified_at` (String)
 - `region` (String)
 - `tenant` (String)
+
+<a id="nestedatt--retry"></a>
+### Nested Schema for `retry`
+
+Optional:
+
+- `delay` (Number)
+- `interval` (Number)
+- `max_attempts` (Number)
 
 ## Import
 

@@ -53,6 +53,7 @@ output "workspace_resource_last_modified_at" {
 - `annotations` (Map of String)
 - `extensions` (Map of String)
 - `labels` (Map of String)
+- `retry` (Attributes) (see [below for nested schema](#nestedatt--retry))
 
 ### Read-Only
 
@@ -62,6 +63,15 @@ output "workspace_resource_last_modified_at" {
 - `last_modified_at` (String)
 - `region` (String)
 - `tenant` (String)
+
+<a id="nestedatt--retry"></a>
+### Nested Schema for `retry`
+
+Optional:
+
+- `delay` (Number)
+- `interval` (Number)
+- `max_attempts` (Number)
 
 ## Import
 

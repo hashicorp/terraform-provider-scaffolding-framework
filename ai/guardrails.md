@@ -22,11 +22,11 @@ These are hard rules. Violations will cause bugs, regressions, or data loss.
 - Write Terraform state from the result of `CreateOrUpdateXxx()` — write from the result of `GetXxxUntilState()` only
 - Skip the polling step for Create or Update
 - Use `time.Sleep()` instead of the SDK's `GetXxxUntilState()` mechanism
-- Hard-code delay or interval values — always read from resource struct retry fields
+- Hard-code delay or interval values — always resolve through `resource.retry.with(data.Retry)`
 
 **Always:**
 - Poll for `ResourceStateActive` after every Create and Update
-- Use the retry parameters from the `clients` struct (passed through from provider config)
+- Seed `resource.retry` from the `clients` struct in `Configure()`, then overlay the per-resource block with `resource.retry.with(data.Retry)` at poll time
 - Check for error from `GetXxxUntilState()` and surface it as a diagnostic
 
 ## Error Handling

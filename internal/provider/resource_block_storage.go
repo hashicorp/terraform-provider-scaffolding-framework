@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -31,9 +30,7 @@ type BlockStorageResource struct {
 	tenant string
 	region string
 
-	retryDelay       time.Duration
-	retryInterval    time.Duration
-	retryMaxAttempts int
+	retry retryConfig
 }
 
 func newBlockStorageResource() resource.Resource {
@@ -75,6 +72,8 @@ type BlockStorageModel struct {
 	SizeGB        types.Int64  `tfsdk:"size_gb"`
 	SkuId         types.String `tfsdk:"sku_id"`
 	SourceImageId types.String `tfsdk:"source_image_id"`
+
+	Retry *RetryModel `tfsdk:"retry"`
 }
 
 func (resource *BlockStorageResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -146,6 +145,7 @@ func (resource *BlockStorageResource) Schema(_ context.Context, _ resource.Schem
 			"source_image_id": tfschema.StringAttribute{
 				Optional: true,
 			},
+			"retry": retryResourceSchema(),
 		},
 	}
 }
@@ -169,9 +169,11 @@ func (r *BlockStorageResource) Configure(ctx context.Context, req resource.Confi
 	r.tenant = clients.Tenant
 	r.region = clients.Region
 
-	r.retryDelay = clients.RetryDelay
-	r.retryInterval = clients.RetryInterval
-	r.retryMaxAttempts = clients.RetryMaxAttempts
+	r.retry = retryConfig{
+		delay:       clients.RetryDelay,
+		interval:    clients.RetryInterval,
+		maxAttempts: clients.RetryMaxAttempts,
+	}
 
 	tflog.Debug(ctx, "configured block storage resource")
 }
@@ -216,12 +218,7 @@ func (resource *BlockStorageResource) Create(ctx context.Context, req resource.C
 		Name:      block.Metadata.Name,
 	}
 
-	config := secapi.ResourceObserverUntilValueConfig[sdk.ResourceState]{
-		ExpectedValues: []sdk.ResourceState{sdk.ResourceStateActive},
-		Delay:          resource.retryDelay,
-		Interval:       resource.retryInterval,
-		MaxAttempts:    resource.retryMaxAttempts,
-	}
+	config := resource.retry.with(data.Retry).untilState(sdk.ResourceStateActive)
 
 	block, err = resource.client.StorageV1.GetBlockStorageUntilState(ctx, wref, config)
 	if err != nil {
@@ -316,12 +313,7 @@ func (resource *BlockStorageResource) Update(ctx context.Context, req resource.U
 		Name:      block.Metadata.Name,
 	}
 
-	config := secapi.ResourceObserverUntilValueConfig[sdk.ResourceState]{
-		ExpectedValues: []sdk.ResourceState{sdk.ResourceStateActive},
-		Delay:          resource.retryDelay,
-		Interval:       resource.retryInterval,
-		MaxAttempts:    resource.retryMaxAttempts,
-	}
+	config := resource.retry.with(data.Retry).untilState(sdk.ResourceStateActive)
 
 	block, err = resource.client.StorageV1.GetBlockStorageUntilState(ctx, wref, config)
 	if err != nil {
@@ -382,11 +374,7 @@ func (resource *BlockStorageResource) Delete(ctx context.Context, req resource.D
 		Name:      block.Metadata.Name,
 	}
 
-	config := secapi.ResourceObserverConfig{
-		Delay:       resource.retryDelay,
-		Interval:    resource.retryInterval,
-		MaxAttempts: resource.retryMaxAttempts,
-	}
+	config := resource.retry.with(data.Retry).observer()
 
 	err = resource.client.StorageV1.WatchBlockStorageUntilDeleted(ctx, wref, config)
 	if err != nil {
