@@ -53,7 +53,11 @@ func TestBlockStorageToResourceModel(t *testing.T) {
 
 **Guard:** Tests only run when `TF_ACC=1` is set. The CI job sets this. Local runs require a live cluster.
 
-**Cluster:** Tests use the provider config in `provider_test.go`, which hardcodes endpoints at `172.18.0.2:30081`. Acceptance tests cannot currently be run against an arbitrary cluster without editing this file.
+**Cluster:** Tests use the provider config in `provider_test.go`, which reads endpoints from environment variables (falling back to `http://localhost:8080/...` defaults). Point the tests at any cluster by setting:
+- `SECA_TEST_REGION_ENDPOINT` — the `seca.region` provider endpoint
+- `SECA_TEST_AUTH_ENDPOINT` — the `seca.authorization` provider endpoint
+
+No source edits are needed to target a different environment.
 
 **Pattern:**
 ```go

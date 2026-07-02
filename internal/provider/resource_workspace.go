@@ -66,6 +66,9 @@ func (resource *WorkspaceResource) Schema(_ context.Context, _ resource.SchemaRe
 		Attributes: map[string]tfschema.Attribute{
 			"id": tfschema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"name": tfschema.StringAttribute{
 				Required: true,
@@ -75,15 +78,27 @@ func (resource *WorkspaceResource) Schema(_ context.Context, _ resource.SchemaRe
 			},
 			"tenant": tfschema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"region": tfschema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"created_at": tfschema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"deleted_at": tfschema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"last_modified_at": tfschema.StringAttribute{
 				Computed: true,

@@ -35,11 +35,9 @@ Current `Optional + Computed` attributes:
 
 ## Plan Modifiers
 
-Only `stringplanmodifier.RequiresReplace()` is used. It is applied to:
-- `name` on all resources (SECA names are immutable)
-- `workspace_id` on workspace-scoped resources
-
-No `UseStateForUnknown()` is currently used. This means computed fields show `(known after apply)` on every plan even when unchanged — a known gap.
+Two `stringplanmodifier` modifiers are used:
+- `RequiresReplace()` — on `name` (SECA names are immutable) and `workspace_id` on workspace-scoped resources.
+- `UseStateForUnknown()` — on immutable Computed fields (`id`, `tenant`, `region`, `created_at`, `deleted_at`) so they no longer show `(known after apply)` on in-place updates. Note `last_modified_at` deliberately omits it, since it changes on every update.
 
 ## Reading State vs Plan vs Config
 
@@ -155,7 +153,6 @@ The following framework features are available but not yet used in this provider
 |---|---|
 | `ConfigValidators` | No cross-field validation needed yet |
 | `Validators` (field-level) | No format validation implemented |
-| `UseStateForUnknown()` | Known gap; all computed fields re-render on plan |
 | `ImportState` | Not implemented; see [known-issues.md](known-issues.md) |
 | `StateUpgraders` | No schema version changes yet |
 | Timeouts (`timeouts` block) | Not implemented; retry config is used instead |
