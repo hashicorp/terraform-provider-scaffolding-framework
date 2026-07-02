@@ -1,12 +1,27 @@
 package acctest
 
 import (
+	"context"
+	"fmt"
+	"os"
+	"sort"
+	"strings"
 	"testing"
 
 	"github.com/eu-sovereign-cloud/terraform-provider-seca/internal/provider"
 
+	"github.com/eu-sovereign-cloud/go-sdk/secapi"
+
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+)
+
+var (
+	testAccToken        = getEnvDefault("SECA_TEST_TOKEN", "test-token")
+	testAccTenant       = getEnvDefault("SECA_TEST_TENANT", "tenant-1")
+	testAccRegion       = getEnvDefault("SECA_TEST_REGION", "region-1")
+	testAccEndpointReg  = getEnvDefault("SECA_TEST_REGION_ENDPOINT", "http://localhost:8080/providers/seca.region")
+	testAccEndpointAuth = getEnvDefault("SECA_TEST_AUTH_ENDPOINT", "http://localhost:8080/providers/seca.authorization")
 )
 
 var testAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
@@ -14,18 +29,65 @@ var testAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServe
 }
 
 func testAccProviderConfig() string {
-	return `
+	return fmt.Sprintf(`
 provider "seca" {
-  token  = "test"
-  tenant = "seca"
-  region = "region"
+  token  = %q
+  tenant = %q
+  region = %q
   global_providers = {
-    region_v1        = "http://172.18.0.2:30081/providers/seca.region",
-    authorization_v1 = "http://172.18.0.2:30081/providers/seca.authorization"
+    region_v1        = %q,
+    authorization_v1 = %q
   }
-}`
+}`, testAccToken, testAccTenant, testAccRegion, testAccEndpointReg, testAccEndpointAuth)
+}
+
+func testAccRegionalClient(ctx context.Context) (*secapi.RegionalClient, error) {
+	globalClient, err := secapi.NewGlobalClient(&secapi.GlobalConfig{
+		AuthToken: testAccToken,
+		Endpoints: secapi.GlobalEndpoints{
+			RegionV1:        testAccEndpointReg,
+			AuthorizationV1: testAccEndpointAuth,
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create global client: %w", err)
+	}
+
+	regionalClient, err := globalClient.NewRegionalClient(ctx, testAccRegion)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create regional client: %w", err)
+	}
+
+	return regionalClient, nil
 }
 
 func testAccPreCheck(t *testing.T) {
 	t.Helper()
+}
+
+func getEnvDefault(key, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return def
+}
+
+func formatLabels(labels map[string]string) string {
+	if len(labels) == 0 {
+		return "{}"
+	}
+
+	keys := make([]string, 0, len(labels))
+	for k := range labels {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	var b strings.Builder
+	b.WriteString("{\n")
+	for _, k := range keys {
+		fmt.Fprintf(&b, "    %s = %q\n", k, labels[k])
+	}
+	b.WriteString("  }")
+	return b.String()
 }

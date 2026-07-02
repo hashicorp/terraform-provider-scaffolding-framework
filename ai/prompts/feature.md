@@ -37,12 +37,15 @@ Removing attributes:
 
 ## Adding ImportState
 
-If adding ImportState to an existing resource:
-1. Implement resource.ResourceWithImportState on the resource struct
-2. Use the resource's `name` as the import ID (verify the API can look up by name)
-3. Implement ImportState to call resource.ImportStatePassthroughID() if name = id, or populate state manually
-4. Add an acceptance test step with ImportState: true, ImportStateVerify: true
-5. Update ai/known-issues.md to remove the relevant known issue entry
+All three existing resources (`seca_workspace`, `seca_image`, `seca_block_storage`) already implement it — follow their pattern:
+1. Implement resource.ResourceWithImportState on the resource struct (add the `_ resource.ResourceWithImportState = (*XxxResource)(nil)` interface assertion)
+2. The import ID must carry exactly the identity fields `Read()` looks up (tenant always comes from provider config, never the import ID):
+   - Tenant-scoped resource (name is enough): pass the `name` — `resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)`
+   - Workspace-scoped resource: use a composite `<workspace_id>/<name>` ID, `strings.Cut` on `/`, and `resp.State.SetAttribute()` for each part (see `resource_block_storage.go`)
+3. Name the ImportState receiver `r` (not `resource`) so the method body can reach the `resource` package helpers — the usual `resource` receiver name shadows the package
+4. Do NOT passthrough to `id`: `Read()` keys off `name`/`workspace_id`, not the `Metadata.Ref` stored in `id`
+5. Add an acceptance test step with `ImportState: true`, `ImportStateVerify: true`, and an explicit `ImportStateId` (the default uses `id`, which is wrong here)
+6. Update ai/known-issues.md to remove the relevant known issue entry
 
 ## Adding UseStateForUnknown()
 

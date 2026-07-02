@@ -3,9 +3,11 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	tfschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -17,8 +19,9 @@ import (
 )
 
 var (
-	_ resource.Resource              = (*BlockStorageResource)(nil)
-	_ resource.ResourceWithConfigure = (*BlockStorageResource)(nil)
+	_ resource.Resource                = (*BlockStorageResource)(nil)
+	_ resource.ResourceWithConfigure   = (*BlockStorageResource)(nil)
+	_ resource.ResourceWithImportState = (*BlockStorageResource)(nil)
 )
 
 type BlockStorageResource struct {
@@ -38,6 +41,20 @@ func newBlockStorageResource() resource.Resource {
 
 func (resource *BlockStorageResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_block_storage"
+}
+
+func (r *BlockStorageResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	workspaceID, name, ok := strings.Cut(req.ID, "/")
+	if !ok || workspaceID == "" || name == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier in the format \"workspace_id/name\", got: %q", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("workspace_id"), workspaceID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), name)...)
 }
 
 type BlockStorageModel struct {
@@ -179,7 +196,7 @@ func (resource *BlockStorageResource) Create(ctx context.Context, req resource.C
 	block, err = resource.client.StorageV1.GetBlockStorageUntilState(ctx, wref, config)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating block storage",
+			"Error reading block storage",
 			"An error was encountered while waiting for the block storage to become active.\nError: "+err.Error(),
 		)
 		return
@@ -210,7 +227,10 @@ func (resource *BlockStorageResource) Read(ctx context.Context, req resource.Rea
 	}
 
 	block, err := resource.client.StorageV1.GetBlockStorage(ctx, wref)
-	if err != nil {
+	if err == secapi.ErrResourceNotFound {
+		resp.State.RemoveResource(ctx)
+		return
+	} else if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading block storage",
 			"An error was encountered when reading the block storage.\nError: "+err.Error(),
@@ -265,7 +285,7 @@ func (resource *BlockStorageResource) Update(ctx context.Context, req resource.U
 	block, err = resource.client.StorageV1.GetBlockStorageUntilState(ctx, wref, config)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error updating block storage",
+			"Error reading block storage",
 			"An error was encountered while waiting for the block storage to become active.\nError: "+err.Error(),
 		)
 		return
@@ -302,6 +322,29 @@ func (resource *BlockStorageResource) Delete(ctx context.Context, req resource.D
 		resp.Diagnostics.AddError(
 			"Error deleting block storage",
 			"An error was encountered when deleting the block storage.\nError: "+err.Error(),
+		)
+		return
+	}
+
+	// Wait until it is deleted
+
+	wref := secapi.WorkspaceReference{
+		Tenant:    secapi.TenantID(block.Metadata.Tenant),
+		Workspace: secapi.WorkspaceID(block.Metadata.Workspace),
+		Name:      block.Metadata.Name,
+	}
+
+	config := secapi.ResourceObserverConfig{
+		Delay:       resource.retryDelay,
+		Interval:    resource.retryInterval,
+		MaxAttempts: resource.retryMaxAttempts,
+	}
+
+	err = resource.client.StorageV1.WatchBlockStorageUntilDeleted(ctx, wref, config)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading block storage",
+			"An error was encountered while waiting for the block storage to become deleted.\nError: "+err.Error(),
 		)
 		return
 	}

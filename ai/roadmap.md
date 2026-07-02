@@ -60,11 +60,8 @@ These resources appear in `examples/` and `examples/use-cases/usage.tf` but are 
 
 See [known-issues.md](known-issues.md) for the full list. Priority items:
 
-1. **ImportState** — all existing resources need it before the provider can be considered production-ready
-2. **404 handling in Read** — necessary for drift detection and out-of-band deletions
-3. **Delete polling** — necessary to prevent race conditions on recreate
-4. **Acceptance test endpoints from env vars** — necessary for CI/CD against different environments
-5. **`UseStateForUnknown()`** — quality of life improvement for Terraform plans
+1. **Acceptance test endpoints from env vars** — necessary for CI/CD against different environments
+2. **`UseStateForUnknown()`** — quality of life improvement for Terraform plans
 
 ## Implementation Priority Notes
 

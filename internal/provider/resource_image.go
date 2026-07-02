@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	tfschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -17,8 +18,9 @@ import (
 )
 
 var (
-	_ resource.Resource              = (*ImageResource)(nil)
-	_ resource.ResourceWithConfigure = (*ImageResource)(nil)
+	_ resource.Resource                = (*ImageResource)(nil)
+	_ resource.ResourceWithConfigure   = (*ImageResource)(nil)
+	_ resource.ResourceWithImportState = (*ImageResource)(nil)
 )
 
 type ImageResource struct {
@@ -38,6 +40,10 @@ func newImageResource() resource.Resource {
 
 func (resource *ImageResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_image"
+}
+
+func (r *ImageResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
 }
 
 type ImageModel struct {
@@ -177,7 +183,7 @@ func (resource *ImageResource) Create(ctx context.Context, req resource.CreateRe
 	image, err = resource.client.StorageV1.GetImageUntilState(ctx, tref, config)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating image",
+			"Error reading image",
 			"An error was encountered while waiting for the image to become active.\nError: "+err.Error(),
 		)
 		return
@@ -207,7 +213,10 @@ func (resource *ImageResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	image, err := resource.client.StorageV1.GetImage(ctx, tref)
-	if err != nil {
+	if err == secapi.ErrResourceNotFound {
+		resp.State.RemoveResource(ctx)
+		return
+	} else if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading image",
 			"An error was encountered when reading the image.\nError: "+err.Error(),
@@ -261,7 +270,7 @@ func (resource *ImageResource) Update(ctx context.Context, req resource.UpdateRe
 	image, err = resource.client.StorageV1.GetImageUntilState(ctx, tref, config)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error updating image",
+			"Error reading image",
 			"An error was encountered while waiting for the image to become active.\nError: "+err.Error(),
 		)
 		return
@@ -297,6 +306,28 @@ func (resource *ImageResource) Delete(ctx context.Context, req resource.DeleteRe
 		resp.Diagnostics.AddError(
 			"Error deleting image",
 			"An error was encountered when deleting the image.\nError: "+err.Error(),
+		)
+		return
+	}
+
+	// Wait until it is deleted
+
+	tref := secapi.TenantReference{
+		Tenant: secapi.TenantID(image.Metadata.Tenant),
+		Name:   image.Metadata.Name,
+	}
+
+	config := secapi.ResourceObserverConfig{
+		Delay:       resource.retryDelay,
+		Interval:    resource.retryInterval,
+		MaxAttempts: resource.retryMaxAttempts,
+	}
+
+	err = resource.client.StorageV1.WatchImageUntilDeleted(ctx, tref, config)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading image",
+			"An error was encountered while waiting for the image to become deleted.\nError: "+err.Error(),
 		)
 		return
 	}

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	tfschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -17,8 +18,9 @@ import (
 )
 
 var (
-	_ resource.Resource              = (*WorkspaceResource)(nil)
-	_ resource.ResourceWithConfigure = (*WorkspaceResource)(nil)
+	_ resource.Resource                = (*WorkspaceResource)(nil)
+	_ resource.ResourceWithConfigure   = (*WorkspaceResource)(nil)
+	_ resource.ResourceWithImportState = (*WorkspaceResource)(nil)
 )
 
 type WorkspaceResource struct {
@@ -38,6 +40,10 @@ func newWorkspaceResource() resource.Resource {
 
 func (resource *WorkspaceResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_workspace"
+}
+
+func (r *WorkspaceResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
 }
 
 type WorkspaceModel struct {
@@ -166,7 +172,7 @@ func (resource *WorkspaceResource) Create(ctx context.Context, req resource.Crea
 	workspace, err = resource.client.WorkspaceV1.GetWorkspaceUntilState(ctx, tref, config)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error updating workspace",
+			"Error reading workspace",
 			"An error was encountered while waiting for the workspace to become active.\nError: "+err.Error(),
 		)
 		return
@@ -196,7 +202,10 @@ func (resource *WorkspaceResource) Read(ctx context.Context, req resource.ReadRe
 	}
 
 	workspace, err := resource.client.WorkspaceV1.GetWorkspace(ctx, tref)
-	if err != nil {
+	if err == secapi.ErrResourceNotFound {
+		resp.State.RemoveResource(ctx)
+		return
+	} else if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading workspace",
 			"An error was encountered when reading the workspace.\nError: "+err.Error(),
@@ -258,7 +267,7 @@ func (resource *WorkspaceResource) Update(ctx context.Context, req resource.Upda
 	workspace, err = resource.client.WorkspaceV1.GetWorkspaceUntilState(ctx, tref, config)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error updating workspace",
+			"Error reading workspace",
 			"An error was encountered while waiting for the workspace to become active.\nError: "+err.Error(),
 		)
 		return
@@ -294,6 +303,28 @@ func (resource *WorkspaceResource) Delete(ctx context.Context, req resource.Dele
 		resp.Diagnostics.AddError(
 			"Error deleting workspace",
 			"An error was encountered when deleting the workspace.\nError: "+err.Error(),
+		)
+		return
+	}
+
+	// Wait until it is deleted
+
+	tref := secapi.TenantReference{
+		Tenant: secapi.TenantID(workspace.Metadata.Tenant),
+		Name:   workspace.Metadata.Name,
+	}
+
+	config := secapi.ResourceObserverConfig{
+		Delay:       resource.retryDelay,
+		Interval:    resource.retryInterval,
+		MaxAttempts: resource.retryMaxAttempts,
+	}
+
+	err = resource.client.WorkspaceV1.WatchWorkspaceUntilDeleted(ctx, tref, config)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading workspace",
+			"An error was encountered while waiting for the workspace to become deleted.\nError: "+err.Error(),
 		)
 		return
 	}
