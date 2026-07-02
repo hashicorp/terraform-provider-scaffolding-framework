@@ -56,13 +56,6 @@ These resources appear in `examples/` and `examples/use-cases/usage.tf` but are 
 | Data source | `seca_role` | Read-only view |
 | Data source | `seca_role_assignment` | Read-only view |
 
-### Infrastructure Debt (Planned Improvements)
-
-See [known-issues.md](known-issues.md) for the full list. Priority items:
-
-1. **Acceptance test endpoints from env vars** — necessary for CI/CD against different environments
-2. **`UseStateForUnknown()`** — quality of life improvement for Terraform plans
-
 ## Implementation Priority Notes
 
 When implementing networking resources, note that:
