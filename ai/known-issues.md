@@ -14,15 +14,7 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 ---
 
-### 2. No `UseStateForUnknown()` on Computed Fields
-
-**Impact:** On every plan, all Computed fields (`tenant`, `region`, `created_at`, etc.) show as `(known after apply)` even when no change is expected. This produces noisy plans and erodes user trust.
-
-**What's missing:** `planmodifier.UseStateForUnknown()` should be added to Computed fields that will not change after initial creation.
-
----
-
-### 3. Retry Config Is Coarse-Grained
+### 2. Retry Config Is Coarse-Grained
 
 **Impact:** All resources in a provider instance share the same retry config. A slow-provisioning instance and a fast-provisioning workspace cannot have different polling configs.
 
@@ -32,7 +24,7 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 ---
 
-### 4. No Structured Logging (`tflog`)
+### 3. No Structured Logging (`tflog`)
 
 **Impact:** No debug output when `TF_LOG=DEBUG` is set. Debugging API interactions requires network tracing.
 
