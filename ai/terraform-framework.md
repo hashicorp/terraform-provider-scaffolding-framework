@@ -89,6 +89,29 @@ if resp.Diagnostics.HasError() {
 
 Check `HasError()` immediately after every `Append()` or `Get()` call. Do not continue processing after an error is added.
 
+## Structured Logging (`tflog`)
+
+Every resource and data source emits structured logs via `github.com/hashicorp/terraform-plugin-log/tflog` (visible with `TF_LOG=DEBUG` or `TF_LOG_PROVIDER=DEBUG`). `tflog` is additive — it never replaces `resp.Diagnostics`, which remains the only way to surface errors to the user.
+
+Conventions:
+- **Attach shared fields once per call.** Resources define a `logFields(ctx, data)` helper that sets `tenant_id`, `name`, and (for workspace-scoped resources) `workspace_id` via `tflog.SetField`, then reassign `ctx`. Every later log line in that call inherits the fields. Data sources set the same fields inline in `Read`.
+- **Levels:** `Debug` for step-by-step flow (entry to each lifecycle method, before each polling wait, and the `ErrResourceNotFound` drift path in `Read`); `Info` for the state-changing successes (`created`/`updated`/`deleted`).
+- **`Configure`:** log a message-only `Debug` (e.g. `"configured image resource"`) after wiring the client — no structured fields. The provider `Configure` additionally logs an `Info` once the SDK client is initialized.
+- **Never log secrets.** No log line ever includes the provider `token` (or any credential), as a field or otherwise.
+
+```go
+func (r *BlockStorageResource) logFields(ctx context.Context, data BlockStorageModel) context.Context {
+    ctx = tflog.SetField(ctx, "tenant_id", r.tenant)
+    ctx = tflog.SetField(ctx, "workspace_id", data.WorkspaceId.ValueString())
+    ctx = tflog.SetField(ctx, "name", data.Name.ValueString())
+    return ctx
+}
+
+// In Create/Read/Update/Delete:
+ctx = r.logFields(ctx, data)
+tflog.Debug(ctx, "creating block storage")
+```
+
 ## Nested Objects (Lists of Objects)
 
 The region data source demonstrates the pattern for `ListNestedAttribute`:
@@ -135,7 +158,6 @@ The following framework features are available but not yet used in this provider
 | `UseStateForUnknown()` | Known gap; all computed fields re-render on plan |
 | `ImportState` | Not implemented; see [known-issues.md](known-issues.md) |
 | `StateUpgraders` | No schema version changes yet |
-| `tflog` | No structured logging implemented |
 | Timeouts (`timeouts` block) | Not implemented; retry config is used instead |
 | `SemanticEquals` | Not implemented |
 | `Identity` | Not implemented |

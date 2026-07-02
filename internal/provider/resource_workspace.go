@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	sdk "github.com/eu-sovereign-cloud/go-sdk/pkg/spec/schema"
 	"github.com/eu-sovereign-cloud/go-sdk/secapi"
@@ -103,7 +104,7 @@ func (resource *WorkspaceResource) Schema(_ context.Context, _ resource.SchemaRe
 	}
 }
 
-func (r *WorkspaceResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *WorkspaceResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -125,6 +126,14 @@ func (r *WorkspaceResource) Configure(_ context.Context, req resource.ConfigureR
 	r.retryDelay = clients.RetryDelay
 	r.retryInterval = clients.RetryInterval
 	r.retryMaxAttempts = clients.RetryMaxAttempts
+
+	tflog.Debug(ctx, "configured workspace resource")
+}
+
+func (r *WorkspaceResource) logFields(ctx context.Context, data WorkspaceModel) context.Context {
+	ctx = tflog.SetField(ctx, "tenant_id", r.tenant)
+	ctx = tflog.SetField(ctx, "name", data.Name.ValueString())
+	return ctx
 }
 
 func (resource *WorkspaceResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -133,6 +142,9 @@ func (resource *WorkspaceResource) Create(ctx context.Context, req resource.Crea
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	ctx = resource.logFields(ctx, data)
+	tflog.Debug(ctx, "creating workspace")
 
 	// Create the workspace
 
@@ -154,6 +166,8 @@ func (resource *WorkspaceResource) Create(ctx context.Context, req resource.Crea
 		)
 		return
 	}
+
+	tflog.Debug(ctx, "waiting for workspace to become active")
 
 	// Wait until it is active
 
@@ -184,6 +198,8 @@ func (resource *WorkspaceResource) Create(ctx context.Context, req resource.Crea
 		return
 	}
 
+	tflog.Info(ctx, "workspace created")
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -194,6 +210,9 @@ func (resource *WorkspaceResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
+	ctx = resource.logFields(ctx, data)
+	tflog.Debug(ctx, "reading workspace")
+
 	// Read the workspace
 
 	tref := secapi.TenantReference{
@@ -203,6 +222,7 @@ func (resource *WorkspaceResource) Read(ctx context.Context, req resource.ReadRe
 
 	workspace, err := resource.client.WorkspaceV1.GetWorkspace(ctx, tref)
 	if err == secapi.ErrResourceNotFound {
+		tflog.Debug(ctx, "workspace not found, removing from state")
 		resp.State.RemoveResource(ctx)
 		return
 	} else if err != nil {
@@ -229,6 +249,9 @@ func (resource *WorkspaceResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
+	ctx = resource.logFields(ctx, data)
+	tflog.Debug(ctx, "updating workspace")
+
 	// Update the workspace
 
 	workspace := &sdk.Workspace{
@@ -249,6 +272,8 @@ func (resource *WorkspaceResource) Update(ctx context.Context, req resource.Upda
 		)
 		return
 	}
+
+	tflog.Debug(ctx, "waiting for workspace to become active")
 
 	// Wait until it is active
 
@@ -279,6 +304,8 @@ func (resource *WorkspaceResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
+	tflog.Info(ctx, "workspace updated")
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -288,6 +315,9 @@ func (resource *WorkspaceResource) Delete(ctx context.Context, req resource.Dele
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	ctx = resource.logFields(ctx, data)
+	tflog.Debug(ctx, "deleting workspace")
 
 	// Delete the workspace
 
@@ -306,6 +336,8 @@ func (resource *WorkspaceResource) Delete(ctx context.Context, req resource.Dele
 		)
 		return
 	}
+
+	tflog.Debug(ctx, "waiting for workspace to be deleted")
 
 	// Wait until it is deleted
 
@@ -328,6 +360,8 @@ func (resource *WorkspaceResource) Delete(ctx context.Context, req resource.Dele
 		)
 		return
 	}
+
+	tflog.Info(ctx, "workspace deleted")
 }
 
 func workspaceToResourceModel(ctx context.Context, workspace *sdk.Workspace) (WorkspaceModel, diag.Diagnostics) {

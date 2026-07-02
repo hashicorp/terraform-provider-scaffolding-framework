@@ -8,6 +8,7 @@ import (
 	tfschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	sdk "github.com/eu-sovereign-cloud/go-sdk/pkg/spec/schema"
 	"github.com/eu-sovereign-cloud/go-sdk/secapi"
@@ -86,7 +87,7 @@ func (d *StorageSkuDataSource) Schema(_ context.Context, _ datasource.SchemaRequ
 	}
 }
 
-func (d *StorageSkuDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *StorageSkuDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
@@ -102,6 +103,8 @@ func (d *StorageSkuDataSource) Configure(_ context.Context, req datasource.Confi
 
 	d.client = clients.RegionalClient
 	d.tenant = clients.Tenant
+
+	tflog.Debug(ctx, "configured storage sku data source")
 }
 
 func (d *StorageSkuDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -110,6 +113,10 @@ func (d *StorageSkuDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	ctx = tflog.SetField(ctx, "tenant_id", d.tenant)
+	ctx = tflog.SetField(ctx, "name", data.Name.ValueString())
+	tflog.Debug(ctx, "reading storage sku data source")
 
 	// Read the storage SKU
 

@@ -30,11 +30,3 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 **Future improvement:** Consider per-resource `timeouts` blocks using `timeouts.New()` from the framework.
 
----
-
-### 4. No Structured Logging (`tflog`)
-
-**Impact:** No debug output when `TF_LOG=DEBUG` is set. Debugging API interactions requires network tracing.
-
-**What's missing:** `tflog.Debug(ctx, "...")` calls in Create, Read, Update, Delete, and Configure.
-
