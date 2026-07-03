@@ -97,3 +97,13 @@ Use this checklist when implementing a new resource or data source. Complete eve
 - [ ] Add example HCL in `examples/data-sources/seca_<name>/data-source.tf`
 - [ ] Run `make generate` to regenerate `docs/`
 - [ ] Verify generated docs look correct
+
+## Before Opening PR
+
+The CI `generate` job will fail if `docs/` was not regenerated. **Do not skip this.**
+
+- [ ] `make generate` — run and commit the output (including any `docs/` changes)
+- [ ] `git diff --exit-code docs/` — must produce no output (clean)
+- [ ] `make build` — must succeed
+- [ ] `make test` — all tests pass
+- [ ] `make lint` — no linter errors

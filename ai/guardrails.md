@@ -96,4 +96,21 @@ These are hard rules. Violations will cause bugs, regressions, or data loss.
 **Always:**
 - Follow the `Configure()` guard pattern: check `req.ProviderData == nil` and type-assert to `clients`
 - Register new resources/data sources in `provider.go` `Resources()` / `DataSources()` lists
-- Run `make generate` after schema changes to keep docs in sync
+
+## Documentation Sync
+
+The CI `generate` job runs `make generate` and fails the PR if `docs/` differs from the committed state. This is a **hard CI gate** — it will block merging.
+
+**Never:**
+- Open a PR with schema changes without committing the output of `make generate`
+- Add, remove, or rename a schema attribute without running `make generate` afterwards
+- Assume docs update themselves — they do not; `tfplugindocs` must be run explicitly
+
+**Always:**
+- After any schema change (new attribute, removed attribute, description change), run:
+  ```
+  make generate
+  git diff docs/
+  ```
+- Commit the `docs/` changes in the same commit as the schema change, or in a follow-up commit on the same branch before the PR is opened
+- Verify `git diff --exit-code docs/` is clean before pushing

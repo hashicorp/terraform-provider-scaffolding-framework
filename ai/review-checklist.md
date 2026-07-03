@@ -2,6 +2,15 @@
 
 Use this checklist when reviewing any PR that adds or modifies provider code.
 
+## Pre-Merge Gate
+
+Check these before anything else. A PR failing any of these must not be merged.
+
+- [ ] CI `generate` job is green — `docs/` is in sync with `make generate` output
+- [ ] CI `build` job is green — provider compiles and lint passes
+- [ ] All schema changes have corresponding `docs/` regeneration committed on the branch
+- [ ] `git diff --exit-code docs/` is clean (verify locally if CI is not available)
+
 ## Architecture
 
 - [ ] New files follow the naming convention (`resource_xxx.go`, `datasource_xxx.go`)
@@ -88,6 +97,6 @@ Use this checklist when reviewing any PR that adds or modifies provider code.
 
 ## Documentation
 
-- [ ] `make generate` was run after schema changes
-- [ ] Docs in `docs/` match the current schema
+- [ ] `make generate` was run after every schema change and the output is committed (see Pre-Merge Gate)
+- [ ] Docs in `docs/` match the current schema — verified by CI `generate` job
 - [ ] Example `.tf` files in `examples/` are valid and formatted (`terraform fmt`)
