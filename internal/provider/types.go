@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -65,4 +66,18 @@ func fromRefPtr(ref *sdk.Reference) types.String {
 		return types.StringNull()
 	}
 	return types.StringValue(ref.Resource)
+}
+
+// refToResourceProvider extracts the "{provider}/{version}" prefix from a
+// full resource Ref URN (e.g. "seca.storage/v1" from
+// "seca.storage/v1/tenants/t1/workspaces/w1/block-storages/bs1").
+func refToResourceProvider(ref string) types.String {
+	if ref == "" {
+		return types.StringNull()
+	}
+	parts := strings.SplitN(ref, "/", 3)
+	if len(parts) < 2 {
+		return types.StringValue(ref)
+	}
+	return types.StringValue(parts[0] + "/" + parts[1])
 }

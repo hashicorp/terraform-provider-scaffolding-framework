@@ -33,14 +33,15 @@ func (d *BlockStorageDataSource) Metadata(_ context.Context, req datasource.Meta
 }
 
 type BlockStorageDataSourceModel struct {
-	Id             types.String `tfsdk:"id"`
-	Name           types.String `tfsdk:"name"`
-	WorkspaceId    types.String `tfsdk:"workspace_id"`
-	Tenant         types.String `tfsdk:"tenant"`
-	Region         types.String `tfsdk:"region"`
-	CreatedAt      types.String `tfsdk:"created_at"`
-	DeletedAt      types.String `tfsdk:"deleted_at"`
-	LastModifiedAt types.String `tfsdk:"last_modified_at"`
+	Id               types.String `tfsdk:"id"`
+	Name             types.String `tfsdk:"name"`
+	WorkspaceId      types.String `tfsdk:"workspace_id"`
+	Tenant           types.String `tfsdk:"tenant"`
+	Region           types.String `tfsdk:"region"`
+	ResourceProvider types.String `tfsdk:"resource_provider"`
+	CreatedAt        types.String `tfsdk:"created_at"`
+	DeletedAt        types.String `tfsdk:"deleted_at"`
+	LastModifiedAt   types.String `tfsdk:"last_modified_at"`
 
 	Labels      types.Map `tfsdk:"labels"`
 	Annotations types.Map `tfsdk:"annotations"`
@@ -69,6 +70,9 @@ func (d *BlockStorageDataSource) Schema(_ context.Context, _ datasource.SchemaRe
 				Computed: true,
 			},
 			"region": tfschema.StringAttribute{
+				Computed: true,
+			},
+			"resource_provider": tfschema.StringAttribute{
 				Computed: true,
 			},
 			"created_at": tfschema.StringAttribute{
@@ -176,6 +180,7 @@ func blockStorageToDataSourceModel(ctx context.Context, block *sdk.BlockStorage)
 	model.WorkspaceId = types.StringValue(block.Metadata.Workspace)
 	model.Tenant = types.StringValue(block.Metadata.Tenant)
 	model.Region = types.StringValue(block.Metadata.Region)
+	model.ResourceProvider = refToResourceProvider(block.Metadata.Ref)
 	model.CreatedAt = fromTime(block.Metadata.CreatedAt)
 	model.DeletedAt = fromTimePtr(block.Metadata.DeletedAt)
 	model.LastModifiedAt = fromTime(block.Metadata.LastModifiedAt)

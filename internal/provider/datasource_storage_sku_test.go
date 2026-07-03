@@ -35,6 +35,7 @@ func TestStorageSkuToDataSourceModel(t *testing.T) {
 	assert.Equal(t, "sku-1", model.Name.ValueString())
 	assert.Equal(t, "tenant-1", model.Tenant.ValueString())
 	assert.Equal(t, "region-1", model.Region.ValueString())
+	assert.Equal(t, "seca.storage/v1", model.ResourceProvider.ValueString())
 
 	assert.Equal(t, map[string]string{"tier": "gold"}, toStringMap(model.Labels))
 	assert.Equal(t, map[string]string{"team": "core"}, toStringMap(model.Annotations))

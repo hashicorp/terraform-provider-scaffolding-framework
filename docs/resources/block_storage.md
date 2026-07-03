@@ -82,6 +82,7 @@ output "block_storage_source_image_id" {
 - `id` (String) The ID of this resource.
 - `last_modified_at` (String)
 - `region` (String)
+- `resource_provider` (String)
 - `tenant` (String)
 
 <a id="nestedatt--retry"></a>

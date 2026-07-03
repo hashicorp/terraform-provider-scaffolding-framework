@@ -87,6 +87,7 @@ output "block_storage_state" {
 - `labels` (Map of String)
 - `last_modified_at` (String)
 - `region` (String)
+- `resource_provider` (String)
 - `size_gb` (Number)
 - `sku_id` (String)
 - `source_image_id` (String)

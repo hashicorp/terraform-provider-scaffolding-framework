@@ -33,13 +33,14 @@ func (d *ImageDataSource) Metadata(_ context.Context, req datasource.MetadataReq
 }
 
 type ImageDataSourceModel struct {
-	Id             types.String `tfsdk:"id"`
-	Name           types.String `tfsdk:"name"`
-	Tenant         types.String `tfsdk:"tenant"`
-	Region         types.String `tfsdk:"region"`
-	CreatedAt      types.String `tfsdk:"created_at"`
-	DeletedAt      types.String `tfsdk:"deleted_at"`
-	LastModifiedAt types.String `tfsdk:"last_modified_at"`
+	Id               types.String `tfsdk:"id"`
+	Name             types.String `tfsdk:"name"`
+	Tenant           types.String `tfsdk:"tenant"`
+	Region           types.String `tfsdk:"region"`
+	ResourceProvider types.String `tfsdk:"resource_provider"`
+	CreatedAt        types.String `tfsdk:"created_at"`
+	DeletedAt        types.String `tfsdk:"deleted_at"`
+	LastModifiedAt   types.String `tfsdk:"last_modified_at"`
 
 	Labels      types.Map `tfsdk:"labels"`
 	Annotations types.Map `tfsdk:"annotations"`
@@ -66,6 +67,9 @@ func (d *ImageDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, 
 				Computed: true,
 			},
 			"region": tfschema.StringAttribute{
+				Computed: true,
+			},
+			"resource_provider": tfschema.StringAttribute{
 				Computed: true,
 			},
 			"created_at": tfschema.StringAttribute{
@@ -173,6 +177,7 @@ func imageToDataSourceModel(ctx context.Context, image *sdk.Image) (ImageDataSou
 	model.Name = types.StringValue(image.Metadata.Name)
 	model.Tenant = types.StringValue(image.Metadata.Tenant)
 	model.Region = types.StringValue(image.Metadata.Region)
+	model.ResourceProvider = refToResourceProvider(image.Metadata.Ref)
 	model.CreatedAt = fromTime(image.Metadata.CreatedAt)
 	model.DeletedAt = fromTimePtr(image.Metadata.DeletedAt)
 	model.LastModifiedAt = fromTime(image.Metadata.LastModifiedAt)

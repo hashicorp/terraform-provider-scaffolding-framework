@@ -43,6 +43,7 @@ func TestBlockStorageToDataSourceModel(t *testing.T) {
 	assert.Equal(t, "seca.storage/v1/tenants/tenant-1/workspaces/workspace-1/block-storages/block-storage-1", model.Id.ValueString())
 	assert.Equal(t, "block-storage-1", model.Name.ValueString())
 	assert.Equal(t, "workspace-1", model.WorkspaceId.ValueString())
+	assert.Equal(t, "seca.storage/v1", model.ResourceProvider.ValueString())
 
 	assert.Equal(t, createdAt.Format(time.RFC3339), model.CreatedAt.ValueString())
 	assert.Equal(t, deletedAt.Format(time.RFC3339), model.DeletedAt.ValueString())

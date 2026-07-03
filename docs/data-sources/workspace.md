@@ -68,5 +68,6 @@ output "workspace_state" {
 - `labels` (Map of String)
 - `last_modified_at` (String)
 - `region` (String)
+- `resource_provider` (String)
 - `state` (String)
 - `tenant` (String)

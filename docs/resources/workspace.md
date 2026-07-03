@@ -62,6 +62,7 @@ output "workspace_resource_last_modified_at" {
 - `id` (String) The ID of this resource.
 - `last_modified_at` (String)
 - `region` (String)
+- `resource_provider` (String)
 - `tenant` (String)
 
 <a id="nestedatt--retry"></a>

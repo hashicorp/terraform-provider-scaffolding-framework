@@ -64,5 +64,6 @@ output "storage_sku_min_volume_size" {
 - `labels` (Map of String)
 - `min_volume_size` (Number)
 - `region` (String)
+- `resource_provider` (String)
 - `tenant` (String)
 - `type` (String)

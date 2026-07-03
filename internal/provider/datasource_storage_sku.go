@@ -33,10 +33,11 @@ func (d *StorageSkuDataSource) Metadata(_ context.Context, req datasource.Metada
 }
 
 type StorageSkuDataSourceModel struct {
-	Id     types.String `tfsdk:"id"`
-	Name   types.String `tfsdk:"name"`
-	Tenant types.String `tfsdk:"tenant"`
-	Region types.String `tfsdk:"region"`
+	Id               types.String `tfsdk:"id"`
+	Name             types.String `tfsdk:"name"`
+	Tenant           types.String `tfsdk:"tenant"`
+	Region           types.String `tfsdk:"region"`
+	ResourceProvider types.String `tfsdk:"resource_provider"`
 
 	Labels      types.Map `tfsdk:"labels"`
 	Annotations types.Map `tfsdk:"annotations"`
@@ -60,6 +61,9 @@ func (d *StorageSkuDataSource) Schema(_ context.Context, _ datasource.SchemaRequ
 				Computed: true,
 			},
 			"region": tfschema.StringAttribute{
+				Computed: true,
+			},
+			"resource_provider": tfschema.StringAttribute{
 				Computed: true,
 			},
 			"labels": tfschema.MapAttribute{
@@ -152,6 +156,7 @@ func storageSkuToDataSourceModel(ctx context.Context, sku *sdk.StorageSku) (Stor
 	model.Name = types.StringValue(sku.Metadata.Name)
 	model.Tenant = types.StringValue(sku.Metadata.Tenant)
 	model.Region = types.StringValue(sku.Metadata.Region)
+	model.ResourceProvider = refToResourceProvider(sku.Metadata.Ref)
 
 	labels, d := fromStringMap(ctx, sku.Labels)
 	diags.Append(d...)

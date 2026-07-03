@@ -22,6 +22,7 @@ These documents onboard AI agents (and human contributors) to work safely, consi
 | [implementation-checklist.md](implementation-checklist.md) | Checklist for implementing new resources/data sources |
 | [known-issues.md](known-issues.md) | Technical debt — do not accidentally work around these |
 | [roadmap.md](roadmap.md) | Planned resources and their priority |
+| [gap-analysis.md](gap-analysis.md) | Full gap analysis, issue drafts, and phased implementation roadmap |
 | [glossary.md](glossary.md) | Domain terminology and SDK type mapping |
 
 ## Prompts
@@ -43,4 +44,6 @@ Ready-to-use prompts for common AI tasks:
 3. [async-operations.md](async-operations.md) — understand the most critical pattern
 4. [provider-conventions.md](provider-conventions.md) — understand naming and schema rules
 5. [guardrails.md](guardrails.md) — understand what never to do
-6. [implementation-checklist.md](implementation-checklist.md) — before writing any new resource
+6. [roadmap.md](roadmap.md) — understand planned scope
+7. [gap-analysis.md](gap-analysis.md) — full gap analysis, issue drafts, phased roadmap
+8. [implementation-checklist.md](implementation-checklist.md) — before writing any new resource
