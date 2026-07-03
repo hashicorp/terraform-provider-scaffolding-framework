@@ -81,3 +81,13 @@ func refToResourceProvider(ref string) types.String {
 	}
 	return types.StringValue(parts[0] + "/" + parts[1])
 }
+
+// fromNonEmptyString converts an empty string to null, or wraps a non-empty
+// string as a types.String value. Used for optional SDK string fields that
+// use "" to represent "not set".
+func fromNonEmptyString(s string) types.String {
+	if s == "" {
+		return types.StringNull()
+	}
+	return types.StringValue(s)
+}
