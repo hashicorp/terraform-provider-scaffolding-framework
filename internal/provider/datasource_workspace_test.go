@@ -39,6 +39,7 @@ func TestWorkspaceToDataSourceModel(t *testing.T) {
 	assert.Equal(t, "workspace-1", model.Name.ValueString())
 	assert.Equal(t, "tenant-1", model.Tenant.ValueString())
 	assert.Equal(t, "region-1", model.Region.ValueString())
+	assert.Equal(t, "seca.workspace/v1", model.ResourceProvider.ValueString())
 
 	assert.Equal(t, createdAt.Format(time.RFC3339), model.CreatedAt.ValueString())
 	assert.Equal(t, deletedAt.Format(time.RFC3339), model.DeletedAt.ValueString())

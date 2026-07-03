@@ -61,16 +61,17 @@ The suffix is always snake_case matching the Terraform resource name.
 Every resource schema must include these attributes in this order:
 
 ```go
-"id":               Computed: true  (populated from Metadata.Ref)
-"name":             Required: true + RequiresReplace()  (immutable API identifier)
-"tenant":           Computed: true  (from provider config, read-only)
-"region":           Computed: true  (from provider config, read-only)
-"created_at":       Computed: true  (RFC3339 string)
-"deleted_at":       Computed: true  (RFC3339 string, nullable)
-"last_modified_at": Computed: true  (RFC3339 string)
-"labels":           Optional: true  + MapAttribute{ElementType: types.StringType}
-"annotations":      Optional: true  + MapAttribute{ElementType: types.StringType}
-"extensions":       Optional: true  + MapAttribute{ElementType: types.StringType}
+"id":                Computed: true  (populated from Metadata.Ref)
+"name":              Required: true + RequiresReplace()  (immutable API identifier)
+"tenant":            Computed: true  (from provider config, read-only)
+"region":            Computed: true  (from provider config, read-only)
+"resource_provider": Computed: true + UseStateForUnknown()  (e.g. "seca.storage/v1"; extracted from Metadata.Ref via refToResourceProvider())
+"created_at":        Computed: true  (RFC3339 string)
+"deleted_at":        Computed: true  (RFC3339 string, nullable)
+"last_modified_at":  Computed: true  (RFC3339 string)
+"labels":            Optional: true  + MapAttribute{ElementType: types.StringType}
+"annotations":       Optional: true  + MapAttribute{ElementType: types.StringType}
+"extensions":        Optional: true  + MapAttribute{ElementType: types.StringType}
 ```
 
 Workspace-scoped resources add:
@@ -79,6 +80,7 @@ Workspace-scoped resources add:
 ```
 
 Data source schemas follow the same pattern with these differences:
+- `resource_provider` is `Computed: true` without `UseStateForUnknown()` (data sources have no plan modifiers)
 - `labels`, `annotations`, `extensions` are `Computed: true` (not Optional)
 - Resource-specific status fields (e.g., `state`) are added as `Computed: true`
 - `workspace_id` on data sources is `Required: true` without `RequiresReplace()`
@@ -107,7 +109,7 @@ Within a model struct, follow this ordering convention:
 1. `Id`
 2. `Name`
 3. `WorkspaceId` (if workspace-scoped)
-4. `Tenant`, `Region`
+4. `Tenant`, `Region`, `ResourceProvider`
 5. `CreatedAt`, `DeletedAt`, `LastModifiedAt`
 6. `Labels`, `Annotations`, `Extensions`
 7. Resource-specific spec fields

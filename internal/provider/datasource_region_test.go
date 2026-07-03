@@ -38,6 +38,7 @@ func TestRegionToDataSourceModel(t *testing.T) {
 
 	assert.Equal(t, "seca.region/v1/regions/region-1", model.Id.ValueString())
 	assert.Equal(t, "region-1", model.Name.ValueString())
+	assert.Equal(t, "seca.region/v1", model.ResourceProvider.ValueString())
 
 	assert.Equal(t, createdAt.Format(time.RFC3339), model.CreatedAt.ValueString())
 	assert.Equal(t, deletedAt.Format(time.RFC3339), model.DeletedAt.ValueString())

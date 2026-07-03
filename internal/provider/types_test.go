@@ -140,3 +140,59 @@ func TestFromRefPtr(t *testing.T) {
 		assert.Equal(t, "some-resource", got.ValueString())
 	})
 }
+
+func TestRefToResourceProvider(t *testing.T) {
+	tests := []struct {
+		name string
+		ref  string
+		want string
+		null bool
+	}{
+		{
+			name: "empty string",
+			ref:  "",
+			null: true,
+		},
+		{
+			name: "workspace ref",
+			ref:  "seca.workspace/v1/tenants/tenant-1/workspaces/workspace-1",
+			want: "seca.workspace/v1",
+		},
+		{
+			name: "storage ref (image)",
+			ref:  "seca.storage/v1/tenants/tenant-1/images/image-1",
+			want: "seca.storage/v1",
+		},
+		{
+			name: "storage ref (block storage)",
+			ref:  "seca.storage/v1/tenants/tenant-1/workspaces/workspace-1/block-storages/bs-1",
+			want: "seca.storage/v1",
+		},
+		{
+			name: "region ref",
+			ref:  "seca.region/v1/regions/region-1",
+			want: "seca.region/v1",
+		},
+		{
+			name: "storage sku ref",
+			ref:  "seca.storage/v1/tenants/tenant-1/storage-skus/RD500",
+			want: "seca.storage/v1",
+		},
+		{
+			name: "no slash — returns as-is",
+			ref:  "noslash",
+			want: "noslash",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := refToResourceProvider(tt.ref)
+			if tt.null {
+				assert.True(t, got.IsNull())
+			} else {
+				assert.False(t, got.IsNull())
+				assert.Equal(t, tt.want, got.ValueString())
+			}
+		})
+	}
+}

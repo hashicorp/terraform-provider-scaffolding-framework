@@ -45,13 +45,14 @@ func (r *ImageResource) ImportState(ctx context.Context, req resource.ImportStat
 }
 
 type ImageModel struct {
-	Id             types.String `tfsdk:"id"`
-	Name           types.String `tfsdk:"name"`
-	Tenant         types.String `tfsdk:"tenant"`
-	Region         types.String `tfsdk:"region"`
-	CreatedAt      types.String `tfsdk:"created_at"`
-	DeletedAt      types.String `tfsdk:"deleted_at"`
-	LastModifiedAt types.String `tfsdk:"last_modified_at"`
+	Id               types.String `tfsdk:"id"`
+	Name             types.String `tfsdk:"name"`
+	Tenant           types.String `tfsdk:"tenant"`
+	Region           types.String `tfsdk:"region"`
+	ResourceProvider types.String `tfsdk:"resource_provider"`
+	CreatedAt        types.String `tfsdk:"created_at"`
+	DeletedAt        types.String `tfsdk:"deleted_at"`
+	LastModifiedAt   types.String `tfsdk:"last_modified_at"`
 
 	Labels      types.Map `tfsdk:"labels"`
 	Annotations types.Map `tfsdk:"annotations"`
@@ -87,6 +88,12 @@ func (resource *ImageResource) Schema(_ context.Context, _ resource.SchemaReques
 				},
 			},
 			"region": tfschema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"resource_provider": tfschema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
@@ -406,6 +413,7 @@ func imageToResourceModel(ctx context.Context, image *sdk.Image) (ImageModel, di
 	model.Name = types.StringValue(image.Metadata.Name)
 	model.Tenant = types.StringValue(image.Metadata.Tenant)
 	model.Region = types.StringValue(image.Metadata.Region)
+	model.ResourceProvider = refToResourceProvider(image.Metadata.Ref)
 	model.CreatedAt = fromTime(image.Metadata.CreatedAt)
 	model.DeletedAt = fromTimePtr(image.Metadata.DeletedAt)
 	model.LastModifiedAt = fromTime(image.Metadata.LastModifiedAt)
