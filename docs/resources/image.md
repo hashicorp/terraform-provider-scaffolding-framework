@@ -88,6 +88,7 @@ output "image_boot" {
 - `extensions` (Map of String)
 - `initializer` (String)
 - `labels` (Map of String)
+- `retry` (Attributes) (see [below for nested schema](#nestedatt--retry))
 
 ### Read-Only
 
@@ -97,6 +98,15 @@ output "image_boot" {
 - `last_modified_at` (String)
 - `region` (String)
 - `tenant` (String)
+
+<a id="nestedatt--retry"></a>
+### Nested Schema for `retry`
+
+Optional:
+
+- `delay` (Number)
+- `interval` (Number)
+- `max_attempts` (Number)
 
 ## Import
 

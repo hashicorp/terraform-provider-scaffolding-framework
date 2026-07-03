@@ -12,13 +12,3 @@ This document captures observed technical debt and known issues. **Do not fix th
 
 **Future improvement:** Extract a shared mapping for common fields (metadata, labels, timestamps), then add resource/data source-specific fields on top.
 
----
-
-### 2. Retry Config Is Coarse-Grained
-
-**Impact:** All resources in a provider instance share the same retry config. A slow-provisioning instance and a fast-provisioning workspace cannot have different polling configs.
-
-**Current behavior:** `retry.delay`, `retry.interval`, `retry.max_attempts` are provider-level only.
-
-**Future improvement:** Consider per-resource `timeouts` blocks using `timeouts.New()` from the framework.
-

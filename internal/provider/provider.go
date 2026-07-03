@@ -20,15 +20,9 @@ type SecaProviderModel struct {
 	Tenant types.String `tfsdk:"tenant"`
 	Region types.String `tfsdk:"region"`
 
-	Retry *SecaRetryModel `tfsdk:"retry"`
+	Retry *RetryModel `tfsdk:"retry"`
 
 	GlobalProviders *SecaGlobalProvidersModel `tfsdk:"global_providers"`
-}
-
-type SecaRetryModel struct {
-	Delay       types.Number `tfsdk:"delay"`
-	Interval    types.Number `tfsdk:"interval"`
-	MaxAttempts types.Number `tfsdk:"max_attempts"`
 }
 
 type SecaGlobalProvidersModel struct {
