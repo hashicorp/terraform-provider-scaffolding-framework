@@ -53,6 +53,7 @@ output "region_providers" {
 - `id` (String) The ID of this resource.
 - `last_modified_at` (String)
 - `providers` (Attributes List) (see [below for nested schema](#nestedatt--providers))
+- `resource_provider` (String)
 
 <a id="nestedatt--providers"></a>
 ### Nested Schema for `providers`
