@@ -495,7 +495,7 @@ func routeTableToResourceModel(ctx context.Context, rt *sdk.RouteTable) (RouteTa
 	return model, diags
 }
 
-func routesToListValue(ctx context.Context, specs []sdk.RouteSpec) (types.List, diag.Diagnostics) {
+func routesToListValue(_ context.Context, specs []sdk.RouteSpec) (types.List, diag.Diagnostics) {
 	objType := types.ObjectType{AttrTypes: routeAttrTypes}
 
 	if len(specs) == 0 {
