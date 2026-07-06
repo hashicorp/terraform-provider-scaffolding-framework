@@ -72,6 +72,59 @@ func networkToBaseModel(ctx context.Context, net *sdk.Network) (networkModel, di
 	return model, diags
 }
 
+type routeTableModel struct {
+	Id               types.String `tfsdk:"id"`
+	Name             types.String `tfsdk:"name"`
+	WorkspaceId      types.String `tfsdk:"workspace_id"`
+	NetworkId        types.String `tfsdk:"network_id"`
+	Tenant           types.String `tfsdk:"tenant"`
+	Region           types.String `tfsdk:"region"`
+	ResourceProvider types.String `tfsdk:"resource_provider"`
+	CreatedAt        types.String `tfsdk:"created_at"`
+	DeletedAt        types.String `tfsdk:"deleted_at"`
+	LastModifiedAt   types.String `tfsdk:"last_modified_at"`
+
+	Labels      types.Map `tfsdk:"labels"`
+	Annotations types.Map `tfsdk:"annotations"`
+	Extensions  types.Map `tfsdk:"extensions"`
+
+	Routes types.List `tfsdk:"routes"`
+}
+
+func routeTableToBaseModel(ctx context.Context, rt *sdk.RouteTable) (routeTableModel, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	model := routeTableModel{}
+	model.Id = types.StringValue(rt.Metadata.Ref)
+	model.Name = types.StringValue(rt.Metadata.Name)
+	model.WorkspaceId = types.StringValue(rt.Metadata.Workspace)
+	model.NetworkId = types.StringValue(rt.Metadata.Network)
+	model.Tenant = types.StringValue(rt.Metadata.Tenant)
+	model.Region = types.StringValue(rt.Metadata.Region)
+	model.ResourceProvider = refToResourceProvider(rt.Metadata.Ref)
+	model.CreatedAt = fromTime(rt.Metadata.CreatedAt)
+	model.DeletedAt = fromTimePtr(rt.Metadata.DeletedAt)
+	model.LastModifiedAt = fromTime(rt.Metadata.LastModifiedAt)
+
+	labels, d := fromStringMap(ctx, rt.Labels)
+	diags.Append(d...)
+	model.Labels = labels
+
+	annotations, d := fromStringMap(ctx, rt.Annotations)
+	diags.Append(d...)
+	model.Annotations = annotations
+
+	extensions, d := fromStringMap(ctx, rt.Extensions)
+	diags.Append(d...)
+	model.Extensions = extensions
+
+	routes, d := routesToListValue(ctx, rt.Spec.Routes)
+	diags.Append(d...)
+	model.Routes = routes
+
+	return model, diags
+}
+
 type internetGatewayModel struct {
 	Id               types.String `tfsdk:"id"`
 	Name             types.String `tfsdk:"name"`

@@ -68,23 +68,8 @@ type RouteModel struct {
 	TargetId             types.String `tfsdk:"target_id"`
 }
 
-type RouteTableModel struct {
-	Id               types.String `tfsdk:"id"`
-	Name             types.String `tfsdk:"name"`
-	WorkspaceId      types.String `tfsdk:"workspace_id"`
-	NetworkId        types.String `tfsdk:"network_id"`
-	Tenant           types.String `tfsdk:"tenant"`
-	Region           types.String `tfsdk:"region"`
-	ResourceProvider types.String `tfsdk:"resource_provider"`
-	CreatedAt        types.String `tfsdk:"created_at"`
-	DeletedAt        types.String `tfsdk:"deleted_at"`
-	LastModifiedAt   types.String `tfsdk:"last_modified_at"`
-
-	Labels      types.Map `tfsdk:"labels"`
-	Annotations types.Map `tfsdk:"annotations"`
-	Extensions  types.Map `tfsdk:"extensions"`
-
-	Routes types.List `tfsdk:"routes"`
+type RouteTableResourceModel struct {
+	routeTableModel
 
 	Retry *RetryModel `tfsdk:"retry"`
 }
@@ -204,7 +189,7 @@ func (r *RouteTableResource) Configure(ctx context.Context, req resource.Configu
 	tflog.Debug(ctx, "configured route table resource")
 }
 
-func (r *RouteTableResource) logFields(ctx context.Context, data RouteTableModel) context.Context {
+func (r *RouteTableResource) logFields(ctx context.Context, data RouteTableResourceModel) context.Context {
 	ctx = tflog.SetField(ctx, "tenant_id", r.tenant)
 	ctx = tflog.SetField(ctx, "workspace_id", data.WorkspaceId.ValueString())
 	ctx = tflog.SetField(ctx, "network_id", data.NetworkId.ValueString())
@@ -213,7 +198,7 @@ func (r *RouteTableResource) logFields(ctx context.Context, data RouteTableModel
 }
 
 func (r *RouteTableResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data RouteTableModel
+	var data RouteTableResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -267,7 +252,7 @@ func (r *RouteTableResource) Create(ctx context.Context, req resource.CreateRequ
 }
 
 func (r *RouteTableResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data RouteTableModel
+	var data RouteTableResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -306,7 +291,7 @@ func (r *RouteTableResource) Read(ctx context.Context, req resource.ReadRequest,
 }
 
 func (r *RouteTableResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data RouteTableModel
+	var data RouteTableResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -360,7 +345,7 @@ func (r *RouteTableResource) Update(ctx context.Context, req resource.UpdateRequ
 }
 
 func (r *RouteTableResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data RouteTableModel
+	var data RouteTableResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -408,7 +393,7 @@ func (r *RouteTableResource) Delete(ctx context.Context, req resource.DeleteRequ
 	tflog.Info(ctx, "route table deleted")
 }
 
-func routeTableFromModel(ctx context.Context, tenant string, data RouteTableModel) (*sdk.RouteTable, diag.Diagnostics) {
+func routeTableFromModel(ctx context.Context, tenant string, data RouteTableResourceModel) (*sdk.RouteTable, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	routes, d := routesFromModel(ctx, data.Routes)
@@ -461,38 +446,9 @@ func routesFromModel(ctx context.Context, list types.List) ([]sdk.RouteSpec, dia
 	return specs, diags
 }
 
-func routeTableToResourceModel(ctx context.Context, rt *sdk.RouteTable) (RouteTableModel, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	model := RouteTableModel{}
-	model.Id = types.StringValue(rt.Metadata.Ref)
-	model.Name = types.StringValue(rt.Metadata.Name)
-	model.WorkspaceId = types.StringValue(rt.Metadata.Workspace)
-	model.NetworkId = types.StringValue(rt.Metadata.Network)
-	model.Tenant = types.StringValue(rt.Metadata.Tenant)
-	model.Region = types.StringValue(rt.Metadata.Region)
-	model.ResourceProvider = refToResourceProvider(rt.Metadata.Ref)
-	model.CreatedAt = fromTime(rt.Metadata.CreatedAt)
-	model.DeletedAt = fromTimePtr(rt.Metadata.DeletedAt)
-	model.LastModifiedAt = fromTime(rt.Metadata.LastModifiedAt)
-
-	labels, d := fromStringMap(ctx, rt.Labels)
-	diags.Append(d...)
-	model.Labels = labels
-
-	annotations, d := fromStringMap(ctx, rt.Annotations)
-	diags.Append(d...)
-	model.Annotations = annotations
-
-	extensions, d := fromStringMap(ctx, rt.Extensions)
-	diags.Append(d...)
-	model.Extensions = extensions
-
-	routes, d := routesToListValue(ctx, rt.Spec.Routes)
-	diags.Append(d...)
-	model.Routes = routes
-
-	return model, diags
+func routeTableToResourceModel(ctx context.Context, rt *sdk.RouteTable) (RouteTableResourceModel, diag.Diagnostics) {
+	common, diags := routeTableToBaseModel(ctx, rt)
+	return RouteTableResourceModel{routeTableModel: common}, diags
 }
 
 func routesToListValue(_ context.Context, specs []sdk.RouteSpec) (types.List, diag.Diagnostics) {
