@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	tfschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -34,27 +33,9 @@ func (d *NicDataSource) Metadata(_ context.Context, req datasource.MetadataReque
 }
 
 type NicDataSourceModel struct {
-	Id               types.String `tfsdk:"id"`
-	Name             types.String `tfsdk:"name"`
-	WorkspaceId      types.String `tfsdk:"workspace_id"`
-	Tenant           types.String `tfsdk:"tenant"`
-	Region           types.String `tfsdk:"region"`
-	ResourceProvider types.String `tfsdk:"resource_provider"`
-	CreatedAt        types.String `tfsdk:"created_at"`
-	DeletedAt        types.String `tfsdk:"deleted_at"`
-	LastModifiedAt   types.String `tfsdk:"last_modified_at"`
+	nicModel
 
-	Labels      types.Map `tfsdk:"labels"`
-	Annotations types.Map `tfsdk:"annotations"`
-	Extensions  types.Map `tfsdk:"extensions"`
-
-	SubnetId         types.String `tfsdk:"subnet_id"`
-	Addresses        types.List   `tfsdk:"addresses"`
-	PublicIpIds      types.List   `tfsdk:"public_ip_ids"`
-	SecurityGroupIds types.List   `tfsdk:"security_group_ids"`
-	MacAddress       types.String `tfsdk:"mac_address"`
-	SkuId            types.String `tfsdk:"sku_id"`
-	State            types.String `tfsdk:"state"`
+	State types.String `tfsdk:"state"`
 }
 
 func (d *NicDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
@@ -158,53 +139,12 @@ func (d *NicDataSource) Read(ctx context.Context, req datasource.ReadRequest, re
 }
 
 func nicToDataSourceModel(ctx context.Context, nic *sdk.Nic) (NicDataSourceModel, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	model := NicDataSourceModel{}
-	model.Id = types.StringValue(nic.Metadata.Ref)
-	model.Name = types.StringValue(nic.Metadata.Name)
-	model.WorkspaceId = types.StringValue(nic.Metadata.Workspace)
-	model.Tenant = types.StringValue(nic.Metadata.Tenant)
-	model.Region = types.StringValue(nic.Metadata.Region)
-	model.ResourceProvider = refToResourceProvider(nic.Metadata.Ref)
-	model.CreatedAt = fromTime(nic.Metadata.CreatedAt)
-	model.DeletedAt = fromTimePtr(nic.Metadata.DeletedAt)
-	model.LastModifiedAt = fromTime(nic.Metadata.LastModifiedAt)
-
-	labels, d := fromStringMap(ctx, nic.Labels)
-	diags.Append(d...)
-	model.Labels = labels
-
-	annotations, d := fromStringMap(ctx, nic.Annotations)
-	diags.Append(d...)
-	model.Annotations = annotations
-
-	extensions, d := fromStringMap(ctx, nic.Extensions)
-	diags.Append(d...)
-	model.Extensions = extensions
-
-	model.SubnetId = types.StringValue(nic.Spec.SubnetRef.Resource)
-
-	addresses, d := refsToStringList(nic.Spec.Addresses)
-	diags.Append(d...)
-	model.Addresses = addresses
-
-	model.SkuId = fromRefPtr(nic.Spec.SkuRef)
-
+	common, diags := nicToBaseModel(ctx, nic)
+	model := NicDataSourceModel{nicModel: common}
 	if nic.Status != nil {
-		publicIpIds, d := refsToStringListFromRefs(nic.Status.PublicIpRefs)
-		diags.Append(d...)
-		model.PublicIpIds = publicIpIds
-
-		model.MacAddress = types.StringValue(nic.Status.MacAddress)
 		model.State = types.StringValue(string(nic.Status.State))
 	} else {
-		model.PublicIpIds = types.ListValueMust(types.StringType, []attr.Value{})
-		model.MacAddress = types.StringNull()
 		model.State = types.StringNull()
 	}
-
-	model.SecurityGroupIds = types.ListValueMust(types.StringType, []attr.Value{})
-
 	return model, diags
 }

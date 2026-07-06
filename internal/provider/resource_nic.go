@@ -57,27 +57,8 @@ func (r *NicResource) ImportState(ctx context.Context, req resource.ImportStateR
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), name)...)
 }
 
-type NicModel struct {
-	Id               types.String `tfsdk:"id"`
-	Name             types.String `tfsdk:"name"`
-	WorkspaceId      types.String `tfsdk:"workspace_id"`
-	Tenant           types.String `tfsdk:"tenant"`
-	Region           types.String `tfsdk:"region"`
-	ResourceProvider types.String `tfsdk:"resource_provider"`
-	CreatedAt        types.String `tfsdk:"created_at"`
-	DeletedAt        types.String `tfsdk:"deleted_at"`
-	LastModifiedAt   types.String `tfsdk:"last_modified_at"`
-
-	Labels      types.Map `tfsdk:"labels"`
-	Annotations types.Map `tfsdk:"annotations"`
-	Extensions  types.Map `tfsdk:"extensions"`
-
-	SubnetId         types.String `tfsdk:"subnet_id"`
-	Addresses        types.List   `tfsdk:"addresses"`
-	PublicIpIds      types.List   `tfsdk:"public_ip_ids"`
-	SecurityGroupIds types.List   `tfsdk:"security_group_ids"`
-	MacAddress       types.String `tfsdk:"mac_address"`
-	SkuId            types.String `tfsdk:"sku_id"`
+type NicResourceModel struct {
+	nicModel
 
 	Retry *RetryModel `tfsdk:"retry"`
 }
@@ -218,7 +199,7 @@ func (r *NicResource) Configure(ctx context.Context, req resource.ConfigureReque
 	tflog.Debug(ctx, "configured nic resource")
 }
 
-func (r *NicResource) logFields(ctx context.Context, data NicModel) context.Context {
+func (r *NicResource) logFields(ctx context.Context, data NicResourceModel) context.Context {
 	ctx = tflog.SetField(ctx, "tenant_id", r.tenant)
 	ctx = tflog.SetField(ctx, "workspace_id", data.WorkspaceId.ValueString())
 	ctx = tflog.SetField(ctx, "name", data.Name.ValueString())
@@ -226,7 +207,7 @@ func (r *NicResource) logFields(ctx context.Context, data NicModel) context.Cont
 }
 
 func (r *NicResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data NicModel
+	var data NicResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -279,7 +260,7 @@ func (r *NicResource) Create(ctx context.Context, req resource.CreateRequest, re
 }
 
 func (r *NicResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data NicModel
+	var data NicResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -317,7 +298,7 @@ func (r *NicResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 }
 
 func (r *NicResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data NicModel
+	var data NicResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -370,7 +351,7 @@ func (r *NicResource) Update(ctx context.Context, req resource.UpdateRequest, re
 }
 
 func (r *NicResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data NicModel
+	var data NicResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -416,7 +397,7 @@ func (r *NicResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 	tflog.Info(ctx, "nic deleted")
 }
 
-func nicFromModel(ctx context.Context, tenant string, data NicModel) (*sdk.Nic, diag.Diagnostics) {
+func nicFromModel(ctx context.Context, tenant string, data NicResourceModel) (*sdk.Nic, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	var addresses []string
@@ -447,54 +428,9 @@ func nicFromModel(ctx context.Context, tenant string, data NicModel) (*sdk.Nic, 
 	return nic, diags
 }
 
-func nicToResourceModel(ctx context.Context, nic *sdk.Nic) (NicModel, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	model := NicModel{}
-	model.Id = types.StringValue(nic.Metadata.Ref)
-	model.Name = types.StringValue(nic.Metadata.Name)
-	model.WorkspaceId = types.StringValue(nic.Metadata.Workspace)
-	model.Tenant = types.StringValue(nic.Metadata.Tenant)
-	model.Region = types.StringValue(nic.Metadata.Region)
-	model.ResourceProvider = refToResourceProvider(nic.Metadata.Ref)
-	model.CreatedAt = fromTime(nic.Metadata.CreatedAt)
-	model.DeletedAt = fromTimePtr(nic.Metadata.DeletedAt)
-	model.LastModifiedAt = fromTime(nic.Metadata.LastModifiedAt)
-
-	labels, d := fromStringMap(ctx, nic.Labels)
-	diags.Append(d...)
-	model.Labels = labels
-
-	annotations, d := fromStringMap(ctx, nic.Annotations)
-	diags.Append(d...)
-	model.Annotations = annotations
-
-	extensions, d := fromStringMap(ctx, nic.Extensions)
-	diags.Append(d...)
-	model.Extensions = extensions
-
-	model.SubnetId = types.StringValue(nic.Spec.SubnetRef.Resource)
-
-	addresses, d := refsToStringList(nic.Spec.Addresses)
-	diags.Append(d...)
-	model.Addresses = addresses
-
-	model.SkuId = fromRefPtr(nic.Spec.SkuRef)
-
-	if nic.Status != nil {
-		publicIpIds, d := refsToStringListFromRefs(nic.Status.PublicIpRefs)
-		diags.Append(d...)
-		model.PublicIpIds = publicIpIds
-
-		model.MacAddress = types.StringValue(nic.Status.MacAddress)
-	} else {
-		model.PublicIpIds = types.ListValueMust(types.StringType, []attr.Value{})
-		model.MacAddress = types.StringNull()
-	}
-
-	model.SecurityGroupIds = types.ListValueMust(types.StringType, []attr.Value{})
-
-	return model, diags
+func nicToResourceModel(ctx context.Context, nic *sdk.Nic) (NicResourceModel, diag.Diagnostics) {
+	common, diags := nicToBaseModel(ctx, nic)
+	return NicResourceModel{nicModel: common}, diags
 }
 
 func refsToStringList(strs []string) (types.List, diag.Diagnostics) {

@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -185,6 +186,78 @@ func publicIpToBaseModel(ctx context.Context, ip *sdk.PublicIp) (publicIpModel, 
 		model.IpAddress = types.StringNull()
 		model.AttachedTo = types.StringNull()
 	}
+
+	return model, diags
+}
+
+type nicModel struct {
+	Id               types.String `tfsdk:"id"`
+	Name             types.String `tfsdk:"name"`
+	WorkspaceId      types.String `tfsdk:"workspace_id"`
+	Tenant           types.String `tfsdk:"tenant"`
+	Region           types.String `tfsdk:"region"`
+	ResourceProvider types.String `tfsdk:"resource_provider"`
+	CreatedAt        types.String `tfsdk:"created_at"`
+	DeletedAt        types.String `tfsdk:"deleted_at"`
+	LastModifiedAt   types.String `tfsdk:"last_modified_at"`
+
+	Labels      types.Map `tfsdk:"labels"`
+	Annotations types.Map `tfsdk:"annotations"`
+	Extensions  types.Map `tfsdk:"extensions"`
+
+	SubnetId         types.String `tfsdk:"subnet_id"`
+	Addresses        types.List   `tfsdk:"addresses"`
+	PublicIpIds      types.List   `tfsdk:"public_ip_ids"`
+	SecurityGroupIds types.List   `tfsdk:"security_group_ids"`
+	MacAddress       types.String `tfsdk:"mac_address"`
+	SkuId            types.String `tfsdk:"sku_id"`
+}
+
+func nicToBaseModel(ctx context.Context, nic *sdk.Nic) (nicModel, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	model := nicModel{}
+	model.Id = types.StringValue(nic.Metadata.Ref)
+	model.Name = types.StringValue(nic.Metadata.Name)
+	model.WorkspaceId = types.StringValue(nic.Metadata.Workspace)
+	model.Tenant = types.StringValue(nic.Metadata.Tenant)
+	model.Region = types.StringValue(nic.Metadata.Region)
+	model.ResourceProvider = refToResourceProvider(nic.Metadata.Ref)
+	model.CreatedAt = fromTime(nic.Metadata.CreatedAt)
+	model.DeletedAt = fromTimePtr(nic.Metadata.DeletedAt)
+	model.LastModifiedAt = fromTime(nic.Metadata.LastModifiedAt)
+
+	labels, d := fromStringMap(ctx, nic.Labels)
+	diags.Append(d...)
+	model.Labels = labels
+
+	annotations, d := fromStringMap(ctx, nic.Annotations)
+	diags.Append(d...)
+	model.Annotations = annotations
+
+	extensions, d := fromStringMap(ctx, nic.Extensions)
+	diags.Append(d...)
+	model.Extensions = extensions
+
+	model.SubnetId = types.StringValue(nic.Spec.SubnetRef.Resource)
+
+	addresses, d := refsToStringList(nic.Spec.Addresses)
+	diags.Append(d...)
+	model.Addresses = addresses
+
+	model.SkuId = fromRefPtr(nic.Spec.SkuRef)
+
+	if nic.Status != nil {
+		publicIpIds, d := refsToStringListFromRefs(nic.Status.PublicIpRefs)
+		diags.Append(d...)
+		model.PublicIpIds = publicIpIds
+		model.MacAddress = types.StringValue(nic.Status.MacAddress)
+	} else {
+		model.PublicIpIds = types.ListValueMust(types.StringType, []attr.Value{})
+		model.MacAddress = types.StringNull()
+	}
+
+	model.SecurityGroupIds = types.ListValueMust(types.StringType, []attr.Value{})
 
 	return model, diags
 }
