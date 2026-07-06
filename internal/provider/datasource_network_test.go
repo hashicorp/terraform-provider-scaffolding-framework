@@ -58,6 +58,6 @@ func TestNetworkToDataSourceModel(t *testing.T) {
 	assert.Equal(t, map[string]string{"team": "network"}, toStringMap(model.Annotations))
 
 	assert.Equal(t, "network-skus/N10K", model.SkuId.ValueString())
-	assert.False(t, model.Cidr.IsNull())
+	assert.Equal(t, "10.100.0.0/16", model.Cidr.Ipv4.ValueString())
 	assert.Equal(t, string(sdk.ResourceStateActive), model.State.ValueString())
 }

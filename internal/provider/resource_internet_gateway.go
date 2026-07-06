@@ -56,22 +56,8 @@ func (r *InternetGatewayResource) ImportState(ctx context.Context, req resource.
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), name)...)
 }
 
-type InternetGatewayModel struct {
-	Id               types.String `tfsdk:"id"`
-	Name             types.String `tfsdk:"name"`
-	WorkspaceId      types.String `tfsdk:"workspace_id"`
-	Tenant           types.String `tfsdk:"tenant"`
-	Region           types.String `tfsdk:"region"`
-	ResourceProvider types.String `tfsdk:"resource_provider"`
-	CreatedAt        types.String `tfsdk:"created_at"`
-	DeletedAt        types.String `tfsdk:"deleted_at"`
-	LastModifiedAt   types.String `tfsdk:"last_modified_at"`
-
-	Labels      types.Map `tfsdk:"labels"`
-	Annotations types.Map `tfsdk:"annotations"`
-	Extensions  types.Map `tfsdk:"extensions"`
-
-	EgressOnly types.Bool `tfsdk:"egress_only"`
+type InternetGatewayResourceModel struct {
+	internetGatewayModel
 
 	Retry *RetryModel `tfsdk:"retry"`
 }
@@ -180,7 +166,7 @@ func (r *InternetGatewayResource) Configure(ctx context.Context, req resource.Co
 	tflog.Debug(ctx, "configured internet gateway resource")
 }
 
-func (r *InternetGatewayResource) logFields(ctx context.Context, data InternetGatewayModel) context.Context {
+func (r *InternetGatewayResource) logFields(ctx context.Context, data InternetGatewayResourceModel) context.Context {
 	ctx = tflog.SetField(ctx, "tenant_id", r.tenant)
 	ctx = tflog.SetField(ctx, "workspace_id", data.WorkspaceId.ValueString())
 	ctx = tflog.SetField(ctx, "name", data.Name.ValueString())
@@ -188,7 +174,7 @@ func (r *InternetGatewayResource) logFields(ctx context.Context, data InternetGa
 }
 
 func (r *InternetGatewayResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data InternetGatewayModel
+	var data InternetGatewayResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -237,7 +223,7 @@ func (r *InternetGatewayResource) Create(ctx context.Context, req resource.Creat
 }
 
 func (r *InternetGatewayResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data InternetGatewayModel
+	var data InternetGatewayResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -275,7 +261,7 @@ func (r *InternetGatewayResource) Read(ctx context.Context, req resource.ReadReq
 }
 
 func (r *InternetGatewayResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data InternetGatewayModel
+	var data InternetGatewayResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -324,7 +310,7 @@ func (r *InternetGatewayResource) Update(ctx context.Context, req resource.Updat
 }
 
 func (r *InternetGatewayResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data InternetGatewayModel
+	var data InternetGatewayResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -370,7 +356,7 @@ func (r *InternetGatewayResource) Delete(ctx context.Context, req resource.Delet
 	tflog.Info(ctx, "internet gateway deleted")
 }
 
-func internetGatewayFromModel(tenant string, data InternetGatewayModel) *sdk.InternetGateway {
+func internetGatewayFromModel(tenant string, data InternetGatewayResourceModel) *sdk.InternetGateway {
 	gtw := &sdk.InternetGateway{
 		Metadata: &sdk.RegionalWorkspaceResourceMetadata{
 			Tenant:    tenant,
@@ -387,33 +373,7 @@ func internetGatewayFromModel(tenant string, data InternetGatewayModel) *sdk.Int
 	return gtw
 }
 
-func internetGatewayToResourceModel(ctx context.Context, gtw *sdk.InternetGateway) (InternetGatewayModel, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	model := InternetGatewayModel{}
-	model.Id = types.StringValue(gtw.Metadata.Ref)
-	model.Name = types.StringValue(gtw.Metadata.Name)
-	model.WorkspaceId = types.StringValue(gtw.Metadata.Workspace)
-	model.Tenant = types.StringValue(gtw.Metadata.Tenant)
-	model.Region = types.StringValue(gtw.Metadata.Region)
-	model.ResourceProvider = refToResourceProvider(gtw.Metadata.Ref)
-	model.CreatedAt = fromTime(gtw.Metadata.CreatedAt)
-	model.DeletedAt = fromTimePtr(gtw.Metadata.DeletedAt)
-	model.LastModifiedAt = fromTime(gtw.Metadata.LastModifiedAt)
-
-	labels, d := fromStringMap(ctx, gtw.Labels)
-	diags.Append(d...)
-	model.Labels = labels
-
-	annotations, d := fromStringMap(ctx, gtw.Annotations)
-	diags.Append(d...)
-	model.Annotations = annotations
-
-	extensions, d := fromStringMap(ctx, gtw.Extensions)
-	diags.Append(d...)
-	model.Extensions = extensions
-
-	model.EgressOnly = types.BoolValue(gtw.Spec.EgressOnly)
-
-	return model, diags
+func internetGatewayToResourceModel(ctx context.Context, gtw *sdk.InternetGateway) (InternetGatewayResourceModel, diag.Diagnostics) {
+	common, diags := internetGatewayToBaseModel(ctx, gtw)
+	return InternetGatewayResourceModel{internetGatewayModel: common}, diags
 }

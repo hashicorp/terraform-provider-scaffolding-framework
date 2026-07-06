@@ -33,22 +33,9 @@ func (d *InternetGatewayDataSource) Metadata(_ context.Context, req datasource.M
 }
 
 type InternetGatewayDataSourceModel struct {
-	Id               types.String `tfsdk:"id"`
-	Name             types.String `tfsdk:"name"`
-	WorkspaceId      types.String `tfsdk:"workspace_id"`
-	Tenant           types.String `tfsdk:"tenant"`
-	Region           types.String `tfsdk:"region"`
-	ResourceProvider types.String `tfsdk:"resource_provider"`
-	CreatedAt        types.String `tfsdk:"created_at"`
-	DeletedAt        types.String `tfsdk:"deleted_at"`
-	LastModifiedAt   types.String `tfsdk:"last_modified_at"`
+	internetGatewayModel
 
-	Labels      types.Map `tfsdk:"labels"`
-	Annotations types.Map `tfsdk:"annotations"`
-	Extensions  types.Map `tfsdk:"extensions"`
-
-	EgressOnly types.Bool   `tfsdk:"egress_only"`
-	State      types.String `tfsdk:"state"`
+	State types.String `tfsdk:"state"`
 }
 
 func (d *InternetGatewayDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
@@ -138,38 +125,12 @@ func (d *InternetGatewayDataSource) Read(ctx context.Context, req datasource.Rea
 }
 
 func internetGatewayToDataSourceModel(ctx context.Context, gtw *sdk.InternetGateway) (InternetGatewayDataSourceModel, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	model := InternetGatewayDataSourceModel{}
-	model.Id = types.StringValue(gtw.Metadata.Ref)
-	model.Name = types.StringValue(gtw.Metadata.Name)
-	model.WorkspaceId = types.StringValue(gtw.Metadata.Workspace)
-	model.Tenant = types.StringValue(gtw.Metadata.Tenant)
-	model.Region = types.StringValue(gtw.Metadata.Region)
-	model.ResourceProvider = refToResourceProvider(gtw.Metadata.Ref)
-	model.CreatedAt = fromTime(gtw.Metadata.CreatedAt)
-	model.DeletedAt = fromTimePtr(gtw.Metadata.DeletedAt)
-	model.LastModifiedAt = fromTime(gtw.Metadata.LastModifiedAt)
-
-	labels, d := fromStringMap(ctx, gtw.Labels)
-	diags.Append(d...)
-	model.Labels = labels
-
-	annotations, d := fromStringMap(ctx, gtw.Annotations)
-	diags.Append(d...)
-	model.Annotations = annotations
-
-	extensions, d := fromStringMap(ctx, gtw.Extensions)
-	diags.Append(d...)
-	model.Extensions = extensions
-
-	model.EgressOnly = types.BoolValue(gtw.Spec.EgressOnly)
-
+	common, diags := internetGatewayToBaseModel(ctx, gtw)
+	model := InternetGatewayDataSourceModel{internetGatewayModel: common}
 	if gtw.Status != nil {
 		model.State = types.StringValue(string(gtw.Status.State))
 	} else {
 		model.State = types.StringNull()
 	}
-
 	return model, diags
 }

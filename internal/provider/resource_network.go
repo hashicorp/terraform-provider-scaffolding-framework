@@ -68,24 +68,8 @@ var networkCidrAttrTypes = map[string]attr.Type{
 	"ipv6": types.StringType,
 }
 
-type NetworkModel struct {
-	Id               types.String `tfsdk:"id"`
-	Name             types.String `tfsdk:"name"`
-	WorkspaceId      types.String `tfsdk:"workspace_id"`
-	Tenant           types.String `tfsdk:"tenant"`
-	Region           types.String `tfsdk:"region"`
-	ResourceProvider types.String `tfsdk:"resource_provider"`
-	CreatedAt        types.String `tfsdk:"created_at"`
-	DeletedAt        types.String `tfsdk:"deleted_at"`
-	LastModifiedAt   types.String `tfsdk:"last_modified_at"`
-
-	Labels      types.Map `tfsdk:"labels"`
-	Annotations types.Map `tfsdk:"annotations"`
-	Extensions  types.Map `tfsdk:"extensions"`
-
-	SkuId           types.String     `tfsdk:"sku_id"`
-	Cidr            NetworkCidrModel `tfsdk:"cidr"`
-	AdditionalCidrs types.List       `tfsdk:"additional_cidrs"`
+type NetworkResourceModel struct {
+	networkModel
 
 	Retry *RetryModel `tfsdk:"retry"`
 }
@@ -219,7 +203,7 @@ func (r *NetworkResource) Configure(ctx context.Context, req resource.ConfigureR
 	tflog.Debug(ctx, "configured network resource")
 }
 
-func (r *NetworkResource) logFields(ctx context.Context, data NetworkModel) context.Context {
+func (r *NetworkResource) logFields(ctx context.Context, data NetworkResourceModel) context.Context {
 	ctx = tflog.SetField(ctx, "tenant_id", r.tenant)
 	ctx = tflog.SetField(ctx, "workspace_id", data.WorkspaceId.ValueString())
 	ctx = tflog.SetField(ctx, "name", data.Name.ValueString())
@@ -227,7 +211,7 @@ func (r *NetworkResource) logFields(ctx context.Context, data NetworkModel) cont
 }
 
 func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data NetworkModel
+	var data NetworkResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -276,7 +260,7 @@ func (r *NetworkResource) Create(ctx context.Context, req resource.CreateRequest
 }
 
 func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data NetworkModel
+	var data NetworkResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -314,7 +298,7 @@ func (r *NetworkResource) Read(ctx context.Context, req resource.ReadRequest, re
 }
 
 func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data NetworkModel
+	var data NetworkResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -363,7 +347,7 @@ func (r *NetworkResource) Update(ctx context.Context, req resource.UpdateRequest
 }
 
 func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data NetworkModel
+	var data NetworkResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -409,7 +393,7 @@ func (r *NetworkResource) Delete(ctx context.Context, req resource.DeleteRequest
 	tflog.Info(ctx, "network deleted")
 }
 
-func networkFromModel(ctx context.Context, tenant string, data NetworkModel) *sdk.Network {
+func networkFromModel(ctx context.Context, tenant string, data NetworkResourceModel) *sdk.Network {
 	net := &sdk.Network{
 		Metadata: &sdk.RegionalWorkspaceResourceMetadata{
 			Tenant:    tenant,
@@ -444,49 +428,9 @@ func networkFromModel(ctx context.Context, tenant string, data NetworkModel) *sd
 	return net
 }
 
-func networkToResourceModel(ctx context.Context, net *sdk.Network) (NetworkModel, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	model := NetworkModel{}
-	model.Id = types.StringValue(net.Metadata.Ref)
-	model.Name = types.StringValue(net.Metadata.Name)
-	model.WorkspaceId = types.StringValue(net.Metadata.Workspace)
-	model.Tenant = types.StringValue(net.Metadata.Tenant)
-	model.Region = types.StringValue(net.Metadata.Region)
-	model.ResourceProvider = refToResourceProvider(net.Metadata.Ref)
-	model.CreatedAt = fromTime(net.Metadata.CreatedAt)
-	model.DeletedAt = fromTimePtr(net.Metadata.DeletedAt)
-	model.LastModifiedAt = fromTime(net.Metadata.LastModifiedAt)
-
-	labels, d := fromStringMap(ctx, net.Labels)
-	diags.Append(d...)
-	model.Labels = labels
-
-	annotations, d := fromStringMap(ctx, net.Annotations)
-	diags.Append(d...)
-	model.Annotations = annotations
-
-	extensions, d := fromStringMap(ctx, net.Extensions)
-	diags.Append(d...)
-	model.Extensions = extensions
-
-	model.SkuId = types.StringValue(net.Spec.SkuRef.Resource)
-
-	// Read CIDR from status (authoritative resolved values after provisioning).
-	// Fall back to spec if status is not yet populated.
-	if net.Status != nil {
-		model.Cidr = cidrFromSDK(net.Status.Cidr)
-		additionalCidrs, d := fromCidrList(ctx, net.Status.AdditionalCidrs)
-		diags.Append(d...)
-		model.AdditionalCidrs = additionalCidrs
-	} else {
-		model.Cidr = cidrFromSDK(net.Spec.Cidr)
-		additionalCidrs, d := fromCidrList(ctx, net.Spec.AdditionalCidrs)
-		diags.Append(d...)
-		model.AdditionalCidrs = additionalCidrs
-	}
-
-	return model, diags
+func networkToResourceModel(ctx context.Context, net *sdk.Network) (NetworkResourceModel, diag.Diagnostics) {
+	common, diags := networkToBaseModel(ctx, net)
+	return NetworkResourceModel{networkModel: common}, diags
 }
 
 func cidrFromSDK(c sdk.Cidr) NetworkCidrModel {

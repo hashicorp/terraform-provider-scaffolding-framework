@@ -33,23 +33,7 @@ func (d *NetworkDataSource) Metadata(_ context.Context, req datasource.MetadataR
 }
 
 type NetworkDataSourceModel struct {
-	Id               types.String `tfsdk:"id"`
-	Name             types.String `tfsdk:"name"`
-	WorkspaceId      types.String `tfsdk:"workspace_id"`
-	Tenant           types.String `tfsdk:"tenant"`
-	Region           types.String `tfsdk:"region"`
-	ResourceProvider types.String `tfsdk:"resource_provider"`
-	CreatedAt        types.String `tfsdk:"created_at"`
-	DeletedAt        types.String `tfsdk:"deleted_at"`
-	LastModifiedAt   types.String `tfsdk:"last_modified_at"`
-
-	Labels      types.Map `tfsdk:"labels"`
-	Annotations types.Map `tfsdk:"annotations"`
-	Extensions  types.Map `tfsdk:"extensions"`
-
-	SkuId           types.String `tfsdk:"sku_id"`
-	Cidr            types.Object `tfsdk:"cidr"`
-	AdditionalCidrs types.List   `tfsdk:"additional_cidrs"`
+	networkModel
 
 	State types.String `tfsdk:"state"`
 }
@@ -160,53 +144,12 @@ func (d *NetworkDataSource) Read(ctx context.Context, req datasource.ReadRequest
 }
 
 func networkToDataSourceModel(ctx context.Context, net *sdk.Network) (NetworkDataSourceModel, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	model := NetworkDataSourceModel{}
-	model.Id = types.StringValue(net.Metadata.Ref)
-	model.Name = types.StringValue(net.Metadata.Name)
-	model.WorkspaceId = types.StringValue(net.Metadata.Workspace)
-	model.Tenant = types.StringValue(net.Metadata.Tenant)
-	model.Region = types.StringValue(net.Metadata.Region)
-	model.ResourceProvider = refToResourceProvider(net.Metadata.Ref)
-	model.CreatedAt = fromTime(net.Metadata.CreatedAt)
-	model.DeletedAt = fromTimePtr(net.Metadata.DeletedAt)
-	model.LastModifiedAt = fromTime(net.Metadata.LastModifiedAt)
-
-	labels, d := fromStringMap(ctx, net.Labels)
-	diags.Append(d...)
-	model.Labels = labels
-
-	annotations, d := fromStringMap(ctx, net.Annotations)
-	diags.Append(d...)
-	model.Annotations = annotations
-
-	extensions, d := fromStringMap(ctx, net.Extensions)
-	diags.Append(d...)
-	model.Extensions = extensions
-
-	model.SkuId = types.StringValue(net.Spec.SkuRef.Resource)
-
-	// Use status values (authoritative after provisioning) when available.
-	var cidrSource sdk.Cidr
-	var additionalCidrsSource []sdk.Cidr
+	common, diags := networkToBaseModel(ctx, net)
+	model := NetworkDataSourceModel{networkModel: common}
 	if net.Status != nil {
-		cidrSource = net.Status.Cidr
-		additionalCidrsSource = net.Status.AdditionalCidrs
 		model.State = types.StringValue(string(net.Status.State))
 	} else {
-		cidrSource = net.Spec.Cidr
-		additionalCidrsSource = net.Spec.AdditionalCidrs
 		model.State = types.StringNull()
 	}
-
-	cidrObj, d := types.ObjectValueFrom(ctx, networkCidrAttrTypes, cidrFromSDK(cidrSource))
-	diags.Append(d...)
-	model.Cidr = cidrObj
-
-	additionalCidrs, d := fromCidrList(ctx, additionalCidrsSource)
-	diags.Append(d...)
-	model.AdditionalCidrs = additionalCidrs
-
 	return model, diags
 }

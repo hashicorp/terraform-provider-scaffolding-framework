@@ -1,0 +1,122 @@
+package provider
+
+import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	sdk "github.com/eu-sovereign-cloud/go-sdk/pkg/spec/schema"
+)
+
+type networkModel struct {
+	Id               types.String `tfsdk:"id"`
+	Name             types.String `tfsdk:"name"`
+	WorkspaceId      types.String `tfsdk:"workspace_id"`
+	Tenant           types.String `tfsdk:"tenant"`
+	Region           types.String `tfsdk:"region"`
+	ResourceProvider types.String `tfsdk:"resource_provider"`
+	CreatedAt        types.String `tfsdk:"created_at"`
+	DeletedAt        types.String `tfsdk:"deleted_at"`
+	LastModifiedAt   types.String `tfsdk:"last_modified_at"`
+
+	Labels      types.Map `tfsdk:"labels"`
+	Annotations types.Map `tfsdk:"annotations"`
+	Extensions  types.Map `tfsdk:"extensions"`
+
+	SkuId           types.String     `tfsdk:"sku_id"`
+	Cidr            NetworkCidrModel `tfsdk:"cidr"`
+	AdditionalCidrs types.List       `tfsdk:"additional_cidrs"`
+}
+
+func networkToBaseModel(ctx context.Context, net *sdk.Network) (networkModel, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	model := networkModel{}
+	model.Id = types.StringValue(net.Metadata.Ref)
+	model.Name = types.StringValue(net.Metadata.Name)
+	model.WorkspaceId = types.StringValue(net.Metadata.Workspace)
+	model.Tenant = types.StringValue(net.Metadata.Tenant)
+	model.Region = types.StringValue(net.Metadata.Region)
+	model.ResourceProvider = refToResourceProvider(net.Metadata.Ref)
+	model.CreatedAt = fromTime(net.Metadata.CreatedAt)
+	model.DeletedAt = fromTimePtr(net.Metadata.DeletedAt)
+	model.LastModifiedAt = fromTime(net.Metadata.LastModifiedAt)
+
+	labels, d := fromStringMap(ctx, net.Labels)
+	diags.Append(d...)
+	model.Labels = labels
+
+	annotations, d := fromStringMap(ctx, net.Annotations)
+	diags.Append(d...)
+	model.Annotations = annotations
+
+	extensions, d := fromStringMap(ctx, net.Extensions)
+	diags.Append(d...)
+	model.Extensions = extensions
+
+	model.SkuId = types.StringValue(net.Spec.SkuRef.Resource)
+
+	if net.Status != nil {
+		model.Cidr = cidrFromSDK(net.Status.Cidr)
+		additionalCidrs, d := fromCidrList(ctx, net.Status.AdditionalCidrs)
+		diags.Append(d...)
+		model.AdditionalCidrs = additionalCidrs
+	} else {
+		model.Cidr = cidrFromSDK(net.Spec.Cidr)
+		additionalCidrs, d := fromCidrList(ctx, net.Spec.AdditionalCidrs)
+		diags.Append(d...)
+		model.AdditionalCidrs = additionalCidrs
+	}
+
+	return model, diags
+}
+
+type internetGatewayModel struct {
+	Id               types.String `tfsdk:"id"`
+	Name             types.String `tfsdk:"name"`
+	WorkspaceId      types.String `tfsdk:"workspace_id"`
+	Tenant           types.String `tfsdk:"tenant"`
+	Region           types.String `tfsdk:"region"`
+	ResourceProvider types.String `tfsdk:"resource_provider"`
+	CreatedAt        types.String `tfsdk:"created_at"`
+	DeletedAt        types.String `tfsdk:"deleted_at"`
+	LastModifiedAt   types.String `tfsdk:"last_modified_at"`
+
+	Labels      types.Map `tfsdk:"labels"`
+	Annotations types.Map `tfsdk:"annotations"`
+	Extensions  types.Map `tfsdk:"extensions"`
+
+	EgressOnly types.Bool `tfsdk:"egress_only"`
+}
+
+func internetGatewayToBaseModel(ctx context.Context, gtw *sdk.InternetGateway) (internetGatewayModel, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	model := internetGatewayModel{}
+	model.Id = types.StringValue(gtw.Metadata.Ref)
+	model.Name = types.StringValue(gtw.Metadata.Name)
+	model.WorkspaceId = types.StringValue(gtw.Metadata.Workspace)
+	model.Tenant = types.StringValue(gtw.Metadata.Tenant)
+	model.Region = types.StringValue(gtw.Metadata.Region)
+	model.ResourceProvider = refToResourceProvider(gtw.Metadata.Ref)
+	model.CreatedAt = fromTime(gtw.Metadata.CreatedAt)
+	model.DeletedAt = fromTimePtr(gtw.Metadata.DeletedAt)
+	model.LastModifiedAt = fromTime(gtw.Metadata.LastModifiedAt)
+
+	labels, d := fromStringMap(ctx, gtw.Labels)
+	diags.Append(d...)
+	model.Labels = labels
+
+	annotations, d := fromStringMap(ctx, gtw.Annotations)
+	diags.Append(d...)
+	model.Annotations = annotations
+
+	extensions, d := fromStringMap(ctx, gtw.Extensions)
+	diags.Append(d...)
+	model.Extensions = extensions
+
+	model.EgressOnly = types.BoolValue(gtw.Spec.EgressOnly)
+
+	return model, diags
+}
