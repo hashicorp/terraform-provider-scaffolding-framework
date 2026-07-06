@@ -83,23 +83,8 @@ type SGRuleModel struct {
 	SourceRefs types.List   `tfsdk:"source_refs"`
 }
 
-type SecurityGroupModel struct {
-	Id               types.String `tfsdk:"id"`
-	Name             types.String `tfsdk:"name"`
-	WorkspaceId      types.String `tfsdk:"workspace_id"`
-	Tenant           types.String `tfsdk:"tenant"`
-	Region           types.String `tfsdk:"region"`
-	ResourceProvider types.String `tfsdk:"resource_provider"`
-	CreatedAt        types.String `tfsdk:"created_at"`
-	DeletedAt        types.String `tfsdk:"deleted_at"`
-	LastModifiedAt   types.String `tfsdk:"last_modified_at"`
-
-	Labels      types.Map `tfsdk:"labels"`
-	Annotations types.Map `tfsdk:"annotations"`
-	Extensions  types.Map `tfsdk:"extensions"`
-
-	Rules    types.List `tfsdk:"rules"`
-	RuleRefs types.List `tfsdk:"rule_refs"`
+type SecurityGroupResourceModel struct {
+	securityGroupModel
 
 	Retry *RetryModel `tfsdk:"retry"`
 }
@@ -239,7 +224,7 @@ func (r *SecurityGroupResource) Configure(ctx context.Context, req resource.Conf
 	tflog.Debug(ctx, "configured security group resource")
 }
 
-func (r *SecurityGroupResource) logFields(ctx context.Context, data SecurityGroupModel) context.Context {
+func (r *SecurityGroupResource) logFields(ctx context.Context, data SecurityGroupResourceModel) context.Context {
 	ctx = tflog.SetField(ctx, "tenant_id", r.tenant)
 	ctx = tflog.SetField(ctx, "workspace_id", data.WorkspaceId.ValueString())
 	ctx = tflog.SetField(ctx, "name", data.Name.ValueString())
@@ -247,7 +232,7 @@ func (r *SecurityGroupResource) logFields(ctx context.Context, data SecurityGrou
 }
 
 func (r *SecurityGroupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data SecurityGroupModel
+	var data SecurityGroupResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -300,7 +285,7 @@ func (r *SecurityGroupResource) Create(ctx context.Context, req resource.CreateR
 }
 
 func (r *SecurityGroupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data SecurityGroupModel
+	var data SecurityGroupResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -338,7 +323,7 @@ func (r *SecurityGroupResource) Read(ctx context.Context, req resource.ReadReque
 }
 
 func (r *SecurityGroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data SecurityGroupModel
+	var data SecurityGroupResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -391,7 +376,7 @@ func (r *SecurityGroupResource) Update(ctx context.Context, req resource.UpdateR
 }
 
 func (r *SecurityGroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data SecurityGroupModel
+	var data SecurityGroupResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -437,7 +422,7 @@ func (r *SecurityGroupResource) Delete(ctx context.Context, req resource.DeleteR
 	tflog.Info(ctx, "security group deleted")
 }
 
-func securityGroupFromModel(ctx context.Context, tenant string, data SecurityGroupModel) (*sdk.SecurityGroup, diag.Diagnostics) {
+func securityGroupFromModel(ctx context.Context, tenant string, data SecurityGroupResourceModel) (*sdk.SecurityGroup, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	rules, d := sgRulesFromModel(ctx, data.Rules)
@@ -522,41 +507,9 @@ func sgRulesFromModel(ctx context.Context, list types.List) ([]sdk.SecurityGroup
 	return specs, diags
 }
 
-func securityGroupToResourceModel(ctx context.Context, sg *sdk.SecurityGroup) (SecurityGroupModel, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	model := SecurityGroupModel{}
-	model.Id = types.StringValue(sg.Metadata.Ref)
-	model.Name = types.StringValue(sg.Metadata.Name)
-	model.WorkspaceId = types.StringValue(sg.Metadata.Workspace)
-	model.Tenant = types.StringValue(sg.Metadata.Tenant)
-	model.Region = types.StringValue(sg.Metadata.Region)
-	model.ResourceProvider = refToResourceProvider(sg.Metadata.Ref)
-	model.CreatedAt = fromTime(sg.Metadata.CreatedAt)
-	model.DeletedAt = fromTimePtr(sg.Metadata.DeletedAt)
-	model.LastModifiedAt = fromTime(sg.Metadata.LastModifiedAt)
-
-	labels, d := fromStringMap(ctx, sg.Labels)
-	diags.Append(d...)
-	model.Labels = labels
-
-	annotations, d := fromStringMap(ctx, sg.Annotations)
-	diags.Append(d...)
-	model.Annotations = annotations
-
-	extensions, d := fromStringMap(ctx, sg.Extensions)
-	diags.Append(d...)
-	model.Extensions = extensions
-
-	rules, d := sgRulesToListValue(ctx, sg.Spec.Rules)
-	diags.Append(d...)
-	model.Rules = rules
-
-	ruleRefs, d := sgRuleRefsToListValue(ctx, sg.Spec.RuleRefs)
-	diags.Append(d...)
-	model.RuleRefs = ruleRefs
-
-	return model, diags
+func securityGroupToResourceModel(ctx context.Context, sg *sdk.SecurityGroup) (SecurityGroupResourceModel, diag.Diagnostics) {
+	common, diags := securityGroupToBaseModel(ctx, sg)
+	return SecurityGroupResourceModel{securityGroupModel: common}, diags
 }
 
 func sgRulesToListValue(ctx context.Context, specs []sdk.SecurityGroupRuleSpec) (types.List, diag.Diagnostics) {

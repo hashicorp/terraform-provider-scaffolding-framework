@@ -33,23 +33,9 @@ func (d *SecurityGroupDataSource) Metadata(_ context.Context, req datasource.Met
 }
 
 type SecurityGroupDataSourceModel struct {
-	Id               types.String `tfsdk:"id"`
-	Name             types.String `tfsdk:"name"`
-	WorkspaceId      types.String `tfsdk:"workspace_id"`
-	Tenant           types.String `tfsdk:"tenant"`
-	Region           types.String `tfsdk:"region"`
-	ResourceProvider types.String `tfsdk:"resource_provider"`
-	CreatedAt        types.String `tfsdk:"created_at"`
-	DeletedAt        types.String `tfsdk:"deleted_at"`
-	LastModifiedAt   types.String `tfsdk:"last_modified_at"`
+	securityGroupModel
 
-	Labels      types.Map `tfsdk:"labels"`
-	Annotations types.Map `tfsdk:"annotations"`
-	Extensions  types.Map `tfsdk:"extensions"`
-
-	Rules    types.List   `tfsdk:"rules"`
-	RuleRefs types.List   `tfsdk:"rule_refs"`
-	State    types.String `tfsdk:"state"`
+	State types.String `tfsdk:"state"`
 }
 
 func (d *SecurityGroupDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
@@ -170,44 +156,12 @@ func (d *SecurityGroupDataSource) Read(ctx context.Context, req datasource.ReadR
 }
 
 func securityGroupToDataSourceModel(ctx context.Context, sg *sdk.SecurityGroup) (SecurityGroupDataSourceModel, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	model := SecurityGroupDataSourceModel{}
-	model.Id = types.StringValue(sg.Metadata.Ref)
-	model.Name = types.StringValue(sg.Metadata.Name)
-	model.WorkspaceId = types.StringValue(sg.Metadata.Workspace)
-	model.Tenant = types.StringValue(sg.Metadata.Tenant)
-	model.Region = types.StringValue(sg.Metadata.Region)
-	model.ResourceProvider = refToResourceProvider(sg.Metadata.Ref)
-	model.CreatedAt = fromTime(sg.Metadata.CreatedAt)
-	model.DeletedAt = fromTimePtr(sg.Metadata.DeletedAt)
-	model.LastModifiedAt = fromTime(sg.Metadata.LastModifiedAt)
-
-	labels, d := fromStringMap(ctx, sg.Labels)
-	diags.Append(d...)
-	model.Labels = labels
-
-	annotations, d := fromStringMap(ctx, sg.Annotations)
-	diags.Append(d...)
-	model.Annotations = annotations
-
-	extensions, d := fromStringMap(ctx, sg.Extensions)
-	diags.Append(d...)
-	model.Extensions = extensions
-
-	rules, d := sgRulesToListValue(ctx, sg.Spec.Rules)
-	diags.Append(d...)
-	model.Rules = rules
-
-	ruleRefs, d := sgRuleRefsToListValue(ctx, sg.Spec.RuleRefs)
-	diags.Append(d...)
-	model.RuleRefs = ruleRefs
-
+	common, diags := securityGroupToBaseModel(ctx, sg)
+	model := SecurityGroupDataSourceModel{securityGroupModel: common}
 	if sg.Status != nil {
 		model.State = types.StringValue(string(sg.Status.State))
 	} else {
 		model.State = types.StringNull()
 	}
-
 	return model, diags
 }
