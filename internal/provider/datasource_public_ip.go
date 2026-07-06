@@ -33,25 +33,9 @@ func (d *PublicIpDataSource) Metadata(_ context.Context, req datasource.Metadata
 }
 
 type PublicIpDataSourceModel struct {
-	Id               types.String `tfsdk:"id"`
-	Name             types.String `tfsdk:"name"`
-	WorkspaceId      types.String `tfsdk:"workspace_id"`
-	Tenant           types.String `tfsdk:"tenant"`
-	Region           types.String `tfsdk:"region"`
-	ResourceProvider types.String `tfsdk:"resource_provider"`
-	CreatedAt        types.String `tfsdk:"created_at"`
-	DeletedAt        types.String `tfsdk:"deleted_at"`
-	LastModifiedAt   types.String `tfsdk:"last_modified_at"`
+	publicIpModel
 
-	Labels      types.Map `tfsdk:"labels"`
-	Annotations types.Map `tfsdk:"annotations"`
-	Extensions  types.Map `tfsdk:"extensions"`
-
-	Version    types.String `tfsdk:"version"`
-	Address    types.String `tfsdk:"address"`
-	AttachedTo types.String `tfsdk:"attached_to"`
-	IpAddress  types.String `tfsdk:"ip_address"`
-	State      types.String `tfsdk:"state"`
+	State types.String `tfsdk:"state"`
 }
 
 func (d *PublicIpDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
@@ -144,44 +128,12 @@ func (d *PublicIpDataSource) Read(ctx context.Context, req datasource.ReadReques
 }
 
 func publicIpToDataSourceModel(ctx context.Context, ip *sdk.PublicIp) (PublicIpDataSourceModel, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	model := PublicIpDataSourceModel{}
-	model.Id = types.StringValue(ip.Metadata.Ref)
-	model.Name = types.StringValue(ip.Metadata.Name)
-	model.WorkspaceId = types.StringValue(ip.Metadata.Workspace)
-	model.Tenant = types.StringValue(ip.Metadata.Tenant)
-	model.Region = types.StringValue(ip.Metadata.Region)
-	model.ResourceProvider = refToResourceProvider(ip.Metadata.Ref)
-	model.CreatedAt = fromTime(ip.Metadata.CreatedAt)
-	model.DeletedAt = fromTimePtr(ip.Metadata.DeletedAt)
-	model.LastModifiedAt = fromTime(ip.Metadata.LastModifiedAt)
-
-	labels, d := fromStringMap(ctx, ip.Labels)
-	diags.Append(d...)
-	model.Labels = labels
-
-	annotations, d := fromStringMap(ctx, ip.Annotations)
-	diags.Append(d...)
-	model.Annotations = annotations
-
-	extensions, d := fromStringMap(ctx, ip.Extensions)
-	diags.Append(d...)
-	model.Extensions = extensions
-
-	model.Version = types.StringValue(string(ip.Spec.Version))
-
+	common, diags := publicIpToBaseModel(ctx, ip)
+	model := PublicIpDataSourceModel{publicIpModel: common}
 	if ip.Status != nil {
-		model.Address = types.StringValue(ip.Status.IpAddress)
-		model.IpAddress = types.StringValue(ip.Status.IpAddress)
-		model.AttachedTo = fromRefPtr(ip.Status.AttachedTo)
 		model.State = types.StringValue(string(ip.Status.State))
 	} else {
-		model.Address = types.StringNull()
-		model.IpAddress = types.StringNull()
-		model.AttachedTo = types.StringNull()
 		model.State = types.StringNull()
 	}
-
 	return model, diags
 }

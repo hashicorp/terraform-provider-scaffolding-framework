@@ -55,25 +55,8 @@ func (r *PublicIpResource) ImportState(ctx context.Context, req resource.ImportS
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), name)...)
 }
 
-type PublicIpModel struct {
-	Id               types.String `tfsdk:"id"`
-	Name             types.String `tfsdk:"name"`
-	WorkspaceId      types.String `tfsdk:"workspace_id"`
-	Tenant           types.String `tfsdk:"tenant"`
-	Region           types.String `tfsdk:"region"`
-	ResourceProvider types.String `tfsdk:"resource_provider"`
-	CreatedAt        types.String `tfsdk:"created_at"`
-	DeletedAt        types.String `tfsdk:"deleted_at"`
-	LastModifiedAt   types.String `tfsdk:"last_modified_at"`
-
-	Labels      types.Map `tfsdk:"labels"`
-	Annotations types.Map `tfsdk:"annotations"`
-	Extensions  types.Map `tfsdk:"extensions"`
-
-	Version    types.String `tfsdk:"version"`
-	Address    types.String `tfsdk:"address"`
-	AttachedTo types.String `tfsdk:"attached_to"`
-	IpAddress  types.String `tfsdk:"ip_address"`
+type PublicIpResourceModel struct {
+	publicIpModel
 
 	Retry *RetryModel `tfsdk:"retry"`
 }
@@ -196,7 +179,7 @@ func (r *PublicIpResource) Configure(ctx context.Context, req resource.Configure
 	tflog.Debug(ctx, "configured public ip resource")
 }
 
-func (r *PublicIpResource) logFields(ctx context.Context, data PublicIpModel) context.Context {
+func (r *PublicIpResource) logFields(ctx context.Context, data PublicIpResourceModel) context.Context {
 	ctx = tflog.SetField(ctx, "tenant_id", r.tenant)
 	ctx = tflog.SetField(ctx, "workspace_id", data.WorkspaceId.ValueString())
 	ctx = tflog.SetField(ctx, "name", data.Name.ValueString())
@@ -204,7 +187,7 @@ func (r *PublicIpResource) logFields(ctx context.Context, data PublicIpModel) co
 }
 
 func (r *PublicIpResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data PublicIpModel
+	var data PublicIpResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -253,7 +236,7 @@ func (r *PublicIpResource) Create(ctx context.Context, req resource.CreateReques
 }
 
 func (r *PublicIpResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data PublicIpModel
+	var data PublicIpResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -291,7 +274,7 @@ func (r *PublicIpResource) Read(ctx context.Context, req resource.ReadRequest, r
 }
 
 func (r *PublicIpResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data PublicIpModel
+	var data PublicIpResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -340,7 +323,7 @@ func (r *PublicIpResource) Update(ctx context.Context, req resource.UpdateReques
 }
 
 func (r *PublicIpResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data PublicIpModel
+	var data PublicIpResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -386,7 +369,7 @@ func (r *PublicIpResource) Delete(ctx context.Context, req resource.DeleteReques
 	tflog.Info(ctx, "public ip deleted")
 }
 
-func publicIpFromModel(tenant string, data PublicIpModel) *sdk.PublicIp {
+func publicIpFromModel(tenant string, data PublicIpResourceModel) *sdk.PublicIp {
 	return &sdk.PublicIp{
 		Metadata: &sdk.RegionalWorkspaceResourceMetadata{
 			Tenant:    tenant,
@@ -402,43 +385,7 @@ func publicIpFromModel(tenant string, data PublicIpModel) *sdk.PublicIp {
 	}
 }
 
-func publicIpToResourceModel(ctx context.Context, ip *sdk.PublicIp) (PublicIpModel, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	model := PublicIpModel{}
-	model.Id = types.StringValue(ip.Metadata.Ref)
-	model.Name = types.StringValue(ip.Metadata.Name)
-	model.WorkspaceId = types.StringValue(ip.Metadata.Workspace)
-	model.Tenant = types.StringValue(ip.Metadata.Tenant)
-	model.Region = types.StringValue(ip.Metadata.Region)
-	model.ResourceProvider = refToResourceProvider(ip.Metadata.Ref)
-	model.CreatedAt = fromTime(ip.Metadata.CreatedAt)
-	model.DeletedAt = fromTimePtr(ip.Metadata.DeletedAt)
-	model.LastModifiedAt = fromTime(ip.Metadata.LastModifiedAt)
-
-	labels, d := fromStringMap(ctx, ip.Labels)
-	diags.Append(d...)
-	model.Labels = labels
-
-	annotations, d := fromStringMap(ctx, ip.Annotations)
-	diags.Append(d...)
-	model.Annotations = annotations
-
-	extensions, d := fromStringMap(ctx, ip.Extensions)
-	diags.Append(d...)
-	model.Extensions = extensions
-
-	model.Version = types.StringValue(string(ip.Spec.Version))
-
-	if ip.Status != nil {
-		model.Address = types.StringValue(ip.Status.IpAddress)
-		model.IpAddress = types.StringValue(ip.Status.IpAddress)
-		model.AttachedTo = fromRefPtr(ip.Status.AttachedTo)
-	} else {
-		model.Address = types.StringNull()
-		model.IpAddress = types.StringNull()
-		model.AttachedTo = types.StringNull()
-	}
-
-	return model, diags
+func publicIpToResourceModel(ctx context.Context, ip *sdk.PublicIp) (PublicIpResourceModel, diag.Diagnostics) {
+	common, diags := publicIpToBaseModel(ctx, ip)
+	return PublicIpResourceModel{publicIpModel: common}, diags
 }
