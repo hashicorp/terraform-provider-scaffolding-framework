@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	tfschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -34,26 +33,9 @@ func (d *SubnetDataSource) Metadata(_ context.Context, req datasource.MetadataRe
 }
 
 type SubnetDataSourceModel struct {
-	Id               types.String `tfsdk:"id"`
-	Name             types.String `tfsdk:"name"`
-	WorkspaceId      types.String `tfsdk:"workspace_id"`
-	NetworkId        types.String `tfsdk:"network_id"`
-	Tenant           types.String `tfsdk:"tenant"`
-	Region           types.String `tfsdk:"region"`
-	ResourceProvider types.String `tfsdk:"resource_provider"`
-	CreatedAt        types.String `tfsdk:"created_at"`
-	DeletedAt        types.String `tfsdk:"deleted_at"`
-	LastModifiedAt   types.String `tfsdk:"last_modified_at"`
+	subnetModel
 
-	Labels      types.Map `tfsdk:"labels"`
-	Annotations types.Map `tfsdk:"annotations"`
-	Extensions  types.Map `tfsdk:"extensions"`
-
-	Cidr         types.Object `tfsdk:"cidr"`
-	RouteTableId types.String `tfsdk:"route_table_id"`
-	Zone         types.String `tfsdk:"zone"`
-	SkuId        types.String `tfsdk:"sku_id"`
-	State        types.String `tfsdk:"state"`
+	State types.String `tfsdk:"state"`
 }
 
 func (d *SubnetDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
@@ -155,48 +137,12 @@ func (d *SubnetDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 }
 
 func subnetToDataSourceModel(ctx context.Context, sub *sdk.Subnet) (SubnetDataSourceModel, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	model := SubnetDataSourceModel{}
-	model.Id = types.StringValue(sub.Metadata.Ref)
-	model.Name = types.StringValue(sub.Metadata.Name)
-	model.WorkspaceId = types.StringValue(sub.Metadata.Workspace)
-	model.NetworkId = types.StringValue(sub.Metadata.Network)
-	model.Tenant = types.StringValue(sub.Metadata.Tenant)
-	model.Region = types.StringValue(sub.Metadata.Region)
-	model.ResourceProvider = refToResourceProvider(sub.Metadata.Ref)
-	model.CreatedAt = fromTime(sub.Metadata.CreatedAt)
-	model.DeletedAt = fromTimePtr(sub.Metadata.DeletedAt)
-	model.LastModifiedAt = fromTime(sub.Metadata.LastModifiedAt)
-
-	labels, d := fromStringMap(ctx, sub.Labels)
-	diags.Append(d...)
-	model.Labels = labels
-
-	annotations, d := fromStringMap(ctx, sub.Annotations)
-	diags.Append(d...)
-	model.Annotations = annotations
-
-	extensions, d := fromStringMap(ctx, sub.Extensions)
-	diags.Append(d...)
-	model.Extensions = extensions
-
-	cidr, d := types.ObjectValue(subnetCidrAttrTypes, map[string]attr.Value{
-		"ipv4": types.StringValue(sub.Spec.Cidr.Ipv4),
-		"ipv6": types.StringValue(sub.Spec.Cidr.Ipv6),
-	})
-	diags.Append(d...)
-	model.Cidr = cidr
-
-	model.RouteTableId = types.StringValue(sub.Spec.RouteTableRef.Resource)
-	model.Zone = types.StringValue(sub.Spec.Zone)
-	model.SkuId = fromRefPtr(sub.Spec.SkuRef)
-
+	common, diags := subnetToBaseModel(ctx, sub)
+	model := SubnetDataSourceModel{subnetModel: common}
 	if sub.Status != nil {
 		model.State = types.StringValue(string(sub.Status.State))
 	} else {
 		model.State = types.StringNull()
 	}
-
 	return model, diags
 }

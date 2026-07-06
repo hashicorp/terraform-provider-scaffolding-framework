@@ -100,7 +100,7 @@ func TestSubnetToDataSourceModel(t *testing.T) {
 	assert.Equal(t, sub.Metadata.Ref, model.Id.ValueString())
 	assert.Equal(t, "network-1", model.NetworkId.ValueString())
 	assert.Equal(t, string(sdk.ResourceStateActive), model.State.ValueString())
-	assert.False(t, model.Cidr.IsNull())
+	assert.Equal(t, "10.0.1.0/24", model.Cidr.Ipv4.ValueString())
 }
 
 func TestSubnetToDataSourceModel_NilStatus(t *testing.T) {

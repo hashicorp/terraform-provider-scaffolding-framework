@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -25,11 +24,6 @@ var (
 	_ resource.ResourceWithConfigure   = (*SubnetResource)(nil)
 	_ resource.ResourceWithImportState = (*SubnetResource)(nil)
 )
-
-var subnetCidrAttrTypes = map[string]attr.Type{
-	"ipv4": types.StringType,
-	"ipv6": types.StringType,
-}
 
 type SubnetResource struct {
 	client *secapi.RegionalClient
@@ -68,26 +62,8 @@ type SubnetCidrModel struct {
 	Ipv6 types.String `tfsdk:"ipv6"`
 }
 
-type SubnetModel struct {
-	Id               types.String `tfsdk:"id"`
-	Name             types.String `tfsdk:"name"`
-	WorkspaceId      types.String `tfsdk:"workspace_id"`
-	NetworkId        types.String `tfsdk:"network_id"`
-	Tenant           types.String `tfsdk:"tenant"`
-	Region           types.String `tfsdk:"region"`
-	ResourceProvider types.String `tfsdk:"resource_provider"`
-	CreatedAt        types.String `tfsdk:"created_at"`
-	DeletedAt        types.String `tfsdk:"deleted_at"`
-	LastModifiedAt   types.String `tfsdk:"last_modified_at"`
-
-	Labels      types.Map `tfsdk:"labels"`
-	Annotations types.Map `tfsdk:"annotations"`
-	Extensions  types.Map `tfsdk:"extensions"`
-
-	Cidr         SubnetCidrModel `tfsdk:"cidr"`
-	RouteTableId types.String    `tfsdk:"route_table_id"`
-	Zone         types.String    `tfsdk:"zone"`
-	SkuId        types.String    `tfsdk:"sku_id"`
+type SubnetResourceModel struct {
+	subnetModel
 
 	Retry *RetryModel `tfsdk:"retry"`
 }
@@ -222,7 +198,7 @@ func (r *SubnetResource) Configure(ctx context.Context, req resource.ConfigureRe
 	tflog.Debug(ctx, "configured subnet resource")
 }
 
-func (r *SubnetResource) logFields(ctx context.Context, data SubnetModel) context.Context {
+func (r *SubnetResource) logFields(ctx context.Context, data SubnetResourceModel) context.Context {
 	ctx = tflog.SetField(ctx, "tenant_id", r.tenant)
 	ctx = tflog.SetField(ctx, "workspace_id", data.WorkspaceId.ValueString())
 	ctx = tflog.SetField(ctx, "network_id", data.NetworkId.ValueString())
@@ -231,7 +207,7 @@ func (r *SubnetResource) logFields(ctx context.Context, data SubnetModel) contex
 }
 
 func (r *SubnetResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data SubnetModel
+	var data SubnetResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -281,7 +257,7 @@ func (r *SubnetResource) Create(ctx context.Context, req resource.CreateRequest,
 }
 
 func (r *SubnetResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data SubnetModel
+	var data SubnetResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -320,7 +296,7 @@ func (r *SubnetResource) Read(ctx context.Context, req resource.ReadRequest, res
 }
 
 func (r *SubnetResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data SubnetModel
+	var data SubnetResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -370,7 +346,7 @@ func (r *SubnetResource) Update(ctx context.Context, req resource.UpdateRequest,
 }
 
 func (r *SubnetResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data SubnetModel
+	var data SubnetResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -418,7 +394,7 @@ func (r *SubnetResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	tflog.Info(ctx, "subnet deleted")
 }
 
-func subnetFromModel(tenant string, data SubnetModel) *sdk.Subnet {
+func subnetFromModel(tenant string, data SubnetResourceModel) *sdk.Subnet {
 	sub := &sdk.Subnet{
 		Metadata: &sdk.RegionalNetworkResourceMetadata{
 			Tenant:    tenant,
@@ -446,41 +422,7 @@ func subnetFromModel(tenant string, data SubnetModel) *sdk.Subnet {
 	return sub
 }
 
-func subnetToResourceModel(ctx context.Context, sub *sdk.Subnet) (SubnetModel, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	model := SubnetModel{}
-	model.Id = types.StringValue(sub.Metadata.Ref)
-	model.Name = types.StringValue(sub.Metadata.Name)
-	model.WorkspaceId = types.StringValue(sub.Metadata.Workspace)
-	model.NetworkId = types.StringValue(sub.Metadata.Network)
-	model.Tenant = types.StringValue(sub.Metadata.Tenant)
-	model.Region = types.StringValue(sub.Metadata.Region)
-	model.ResourceProvider = refToResourceProvider(sub.Metadata.Ref)
-	model.CreatedAt = fromTime(sub.Metadata.CreatedAt)
-	model.DeletedAt = fromTimePtr(sub.Metadata.DeletedAt)
-	model.LastModifiedAt = fromTime(sub.Metadata.LastModifiedAt)
-
-	labels, d := fromStringMap(ctx, sub.Labels)
-	diags.Append(d...)
-	model.Labels = labels
-
-	annotations, d := fromStringMap(ctx, sub.Annotations)
-	diags.Append(d...)
-	model.Annotations = annotations
-
-	extensions, d := fromStringMap(ctx, sub.Extensions)
-	diags.Append(d...)
-	model.Extensions = extensions
-
-	model.Cidr = SubnetCidrModel{
-		Ipv4: types.StringValue(sub.Spec.Cidr.Ipv4),
-		Ipv6: types.StringValue(sub.Spec.Cidr.Ipv6),
-	}
-
-	model.RouteTableId = types.StringValue(sub.Spec.RouteTableRef.Resource)
-	model.Zone = types.StringValue(sub.Spec.Zone)
-	model.SkuId = fromRefPtr(sub.Spec.SkuRef)
-
-	return model, diags
+func subnetToResourceModel(ctx context.Context, sub *sdk.Subnet) (SubnetResourceModel, diag.Diagnostics) {
+	common, diags := subnetToBaseModel(ctx, sub)
+	return SubnetResourceModel{subnetModel: common}, diags
 }

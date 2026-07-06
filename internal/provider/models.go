@@ -72,6 +72,66 @@ func networkToBaseModel(ctx context.Context, net *sdk.Network) (networkModel, di
 	return model, diags
 }
 
+type subnetModel struct {
+	Id               types.String `tfsdk:"id"`
+	Name             types.String `tfsdk:"name"`
+	WorkspaceId      types.String `tfsdk:"workspace_id"`
+	NetworkId        types.String `tfsdk:"network_id"`
+	Tenant           types.String `tfsdk:"tenant"`
+	Region           types.String `tfsdk:"region"`
+	ResourceProvider types.String `tfsdk:"resource_provider"`
+	CreatedAt        types.String `tfsdk:"created_at"`
+	DeletedAt        types.String `tfsdk:"deleted_at"`
+	LastModifiedAt   types.String `tfsdk:"last_modified_at"`
+
+	Labels      types.Map `tfsdk:"labels"`
+	Annotations types.Map `tfsdk:"annotations"`
+	Extensions  types.Map `tfsdk:"extensions"`
+
+	Cidr         SubnetCidrModel `tfsdk:"cidr"`
+	RouteTableId types.String    `tfsdk:"route_table_id"`
+	Zone         types.String    `tfsdk:"zone"`
+	SkuId        types.String    `tfsdk:"sku_id"`
+}
+
+func subnetToBaseModel(ctx context.Context, sub *sdk.Subnet) (subnetModel, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	model := subnetModel{}
+	model.Id = types.StringValue(sub.Metadata.Ref)
+	model.Name = types.StringValue(sub.Metadata.Name)
+	model.WorkspaceId = types.StringValue(sub.Metadata.Workspace)
+	model.NetworkId = types.StringValue(sub.Metadata.Network)
+	model.Tenant = types.StringValue(sub.Metadata.Tenant)
+	model.Region = types.StringValue(sub.Metadata.Region)
+	model.ResourceProvider = refToResourceProvider(sub.Metadata.Ref)
+	model.CreatedAt = fromTime(sub.Metadata.CreatedAt)
+	model.DeletedAt = fromTimePtr(sub.Metadata.DeletedAt)
+	model.LastModifiedAt = fromTime(sub.Metadata.LastModifiedAt)
+
+	labels, d := fromStringMap(ctx, sub.Labels)
+	diags.Append(d...)
+	model.Labels = labels
+
+	annotations, d := fromStringMap(ctx, sub.Annotations)
+	diags.Append(d...)
+	model.Annotations = annotations
+
+	extensions, d := fromStringMap(ctx, sub.Extensions)
+	diags.Append(d...)
+	model.Extensions = extensions
+
+	model.Cidr = SubnetCidrModel{
+		Ipv4: types.StringValue(sub.Spec.Cidr.Ipv4),
+		Ipv6: types.StringValue(sub.Spec.Cidr.Ipv6),
+	}
+	model.RouteTableId = types.StringValue(sub.Spec.RouteTableRef.Resource)
+	model.Zone = types.StringValue(sub.Spec.Zone)
+	model.SkuId = fromRefPtr(sub.Spec.SkuRef)
+
+	return model, diags
+}
+
 type routeTableModel struct {
 	Id               types.String `tfsdk:"id"`
 	Name             types.String `tfsdk:"name"`
