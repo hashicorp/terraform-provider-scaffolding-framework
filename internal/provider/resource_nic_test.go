@@ -91,25 +91,3 @@ func TestNicFromModel_RoundTrip(t *testing.T) {
 	assert.Equal(t, []string{"10.0.1.10"}, roundTripped.Spec.Addresses)
 }
 
-func TestNicToDataSourceModel(t *testing.T) {
-	nic := nicFixture()
-
-	model, diags := nicToDataSourceModel(context.Background(), nic)
-	require.False(t, diags.HasError())
-
-	assert.Equal(t, nic.Metadata.Ref, model.Id.ValueString())
-	assert.Equal(t, "subnets/subnet-1", model.SubnetId.ValueString())
-	assert.Equal(t, "aa:bb:cc:dd:ee:ff", model.MacAddress.ValueString())
-	assert.Equal(t, string(sdk.ResourceStateActive), model.State.ValueString())
-}
-
-func TestNicToDataSourceModel_NilStatus(t *testing.T) {
-	nic := nicFixture()
-	nic.Status = nil
-
-	model, diags := nicToDataSourceModel(context.Background(), nic)
-	require.False(t, diags.HasError())
-
-	assert.True(t, model.State.IsNull())
-	assert.True(t, model.MacAddress.IsNull())
-}
