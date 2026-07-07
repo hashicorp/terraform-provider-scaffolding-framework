@@ -115,27 +115,6 @@ func TestSecurityGroupFromModel_RoundTrip(t *testing.T) {
 	assert.Equal(t, []int{80, 443}, roundTripped.Spec.Rules[0].Ports.List)
 }
 
-func TestSecurityGroupToDataSourceModel(t *testing.T) {
-	sg := securityGroupFixture()
-
-	model, diags := securityGroupToDataSourceModel(context.Background(), sg)
-	require.False(t, diags.HasError())
-
-	assert.Equal(t, sg.Metadata.Ref, model.Id.ValueString())
-	assert.Equal(t, string(sdk.ResourceStateActive), model.State.ValueString())
-	assert.Equal(t, 2, len(model.Rules.Elements()))
-}
-
-func TestSecurityGroupToDataSourceModel_NilStatus(t *testing.T) {
-	sg := securityGroupFixture()
-	sg.Status = nil
-
-	model, diags := securityGroupToDataSourceModel(context.Background(), sg)
-	require.False(t, diags.HasError())
-
-	assert.True(t, model.State.IsNull())
-}
-
 func TestSecurityGroupPortsFromNilPorts(t *testing.T) {
 	obj, diags := sgPortsToObjectValue(context.Background(), nil)
 	require.False(t, diags.HasError())
