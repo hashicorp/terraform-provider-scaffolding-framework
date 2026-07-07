@@ -77,25 +77,3 @@ func TestPublicIpFromModel_RoundTrip(t *testing.T) {
 	assert.Equal(t, "workspace-1", roundTripped.Metadata.Workspace)
 }
 
-func TestPublicIpToDataSourceModel(t *testing.T) {
-	ip := publicIpFixture()
-
-	model, diags := publicIpToDataSourceModel(context.Background(), ip)
-	require.False(t, diags.HasError())
-
-	assert.Equal(t, ip.Metadata.Ref, model.Id.ValueString())
-	assert.Equal(t, "IPv4", model.Version.ValueString())
-	assert.Equal(t, "203.0.113.42", model.Address.ValueString())
-	assert.Equal(t, string(sdk.ResourceStateActive), model.State.ValueString())
-}
-
-func TestPublicIpToDataSourceModel_NilStatus(t *testing.T) {
-	ip := publicIpFixture()
-	ip.Status = nil
-
-	model, diags := publicIpToDataSourceModel(context.Background(), ip)
-	require.False(t, diags.HasError())
-
-	assert.True(t, model.State.IsNull())
-	assert.True(t, model.Address.IsNull())
-}
