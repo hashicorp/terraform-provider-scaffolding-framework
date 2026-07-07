@@ -90,4 +90,3 @@ func TestSubnetFromModel_NilRouteTableId(t *testing.T) {
 	roundTripped := subnetFromModel("tenant-1", model)
 	assert.Empty(t, roundTripped.Spec.RouteTableRef.Resource)
 }
-
