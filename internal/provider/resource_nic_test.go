@@ -90,4 +90,3 @@ func TestNicFromModel_RoundTrip(t *testing.T) {
 	assert.Equal(t, "subnets/subnet-1", roundTripped.Spec.SubnetRef.Resource)
 	assert.Equal(t, []string{"10.0.1.10"}, roundTripped.Spec.Addresses)
 }
-

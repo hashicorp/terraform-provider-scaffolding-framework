@@ -76,4 +76,3 @@ func TestPublicIpFromModel_RoundTrip(t *testing.T) {
 	assert.Equal(t, sdk.IPVersionIPv4, roundTripped.Spec.Version)
 	assert.Equal(t, "workspace-1", roundTripped.Metadata.Workspace)
 }
-
