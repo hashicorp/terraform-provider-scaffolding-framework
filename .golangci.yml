@@ -8,6 +8,7 @@ linters:
     - errcheck
     - forcetypeassert
     - godot
+    - govet
     - ineffassign
     - makezero
     - misspell
